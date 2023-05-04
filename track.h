@@ -17,16 +17,6 @@ typedef struct strobject_struct {
 
 } strobject;
 
-
-/*
-typedef union commit_union {
-	strobject *str;
-	spaceobject *space;
-	types t;
-	// put pointer to next union
-} commit;
-*/
-
 void initBaseObject(baseobject *bo, char *data);
 void initStrObject(strobject *so, char data, strobject* n, types tp);
 void insertStrObject(strobject *so, strobject *n);
