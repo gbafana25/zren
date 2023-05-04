@@ -1,7 +1,7 @@
 
 typedef enum types_enum {
-	STR,
-	SPACE,
+	CHANGE,
+	STAY,
 } types;
 
 typedef struct baseobject_struct {
@@ -11,31 +11,25 @@ typedef struct baseobject_struct {
 } baseobject;
 
 typedef struct strobject_struct {
-	char *data;
+	char data;
 	struct strobject *next;
-	int len;
+	types t;	
 
 } strobject;
 
-typedef struct spaceobject_struct {
-	int num_spaces;
-	struct spaceobject *next;
 
-} spaceobject;
-
+/*
 typedef union commit_union {
 	strobject *str;
 	spaceobject *space;
 	types t;
 	// put pointer to next union
 } commit;
+*/
 
 void initBaseObject(baseobject *bo, char *data);
-void initStrObject(strobject *so, char *data, strobject* n, int len);
-void initSpaceObject(spaceobject *so, int num, spaceobject* n);
+void initStrObject(strobject *so, char data, strobject* n, types tp);
 void insertStrObject(strobject *so, strobject *n);
-void insertSpaceAfter(spaceobject *so, spaceobject *n);
 void printStrObject(strobject *so);
-void printSpaces(spaceobject *so);
-void applyStrChange(char *current, strobject *so, int *p);
-void findDiff(char *base, char *current, commit *ca);
+void printBaseObject(baseobject *bo);
+void findDiff(char *base, char *current, strobject *head);

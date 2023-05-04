@@ -7,16 +7,9 @@
 int main() {
 	baseobject base;
 	baseobject mod;
-	strobject test_string;
-	spaceobject spaces;
-	// try to get rid of array, use pointer to next element in structs
-	commit commit_array[50];
+	//strobject test_string;
 	
-	/*
-	char *test = "replacement";
-	char *t2 = "another change\n";
-	*/
-	
+		
 	FILE *f = fopen("original", "r");
 	fseek(f, 0L, SEEK_END);
 	size_t s = ftell(f);
@@ -40,25 +33,24 @@ int main() {
 	m[strlen(m)-1] = '\0';
 	initBaseObject(&mod, m);
 	//printBaseObject(&mod);
+	strobject *head = (strobject*)malloc(sizeof(strobject));
+	strobject *t = (strobject*)malloc(sizeof(strobject));
 
-	// create commit	
-	findDiff(base.data, mod.data, &commit_array);
-	for(int i = 0; i < 100; i++) {
-		if(commit_array[i].t == STR) {
-			printf("string");
-		} else if(commit_array[i].t == SPACE) {
-			printf(" ");
-		}
+	initStrObject(head, 'H', NULL, CHANGE); 
+	/*
+	creating and inserting string objects currently 
+	doesn't work in loop (track.c)
+	*/
+	//initStrObject(t, 't', NULL, CHANGE);
+	//insertStrObject(head, t);
+	findDiff(base.data, mod.data, head);
+	//printStrObject(head);	
+	strobject *n = head;
+	while(n != NULL) {
+		printf("%c\n", n->data);
+		n = n->next;
 	}
 	
-	/*
-	initStrObject(&test_string, test, NULL, strlen(test));
-	initSpaceObject(&spaces, 5, NULL);
-	applyStrChange(base.data, &test_string, &base.pos);
-
-	insertSpaceAfter(&test_string, &spaces);
-	printBaseObject(&base);
-	*/
 	
 
 	

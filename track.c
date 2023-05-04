@@ -10,17 +10,13 @@ void initBaseObject(baseobject *bo, char *data) {
 	bo->pos = 0;
 }
 
-void initStrObject(strobject *so, char *data, strobject* n, int len) {
-	so->data = (char*)malloc(sizeof(char)*len+1);
-	strcpy(so->data, data);
+void initStrObject(strobject *so, char data, strobject* n, types tp) {
+	so->data = data;
+	//printf("%c\n", so->data);
 	so->next = n;	
-	so->len = len;
+	so->t = tp;
 }
 
-void initSpaceObject(spaceobject *so, int num, spaceobject* n) {
-	so->num_spaces = num;
-	so->next = n;	
-}
 
 void insertStrObject(strobject *so, strobject *new) {
 	strobject *temp = so->next;
@@ -29,65 +25,47 @@ void insertStrObject(strobject *so, strobject *new) {
 
 }
 
-void insertSpaceAfter(spaceobject *so, spaceobject *new) {
-	spaceobject *temp = so->next;
-	so->next = new;
-	new->next = temp;
 
-}
+void findDiff(char *base, char *current, strobject *head) {	
+	strobject *curr = head;	
+	int blen = strlen(base);
+	int clen = strlen(current);
 
-void applyStrChange(char *current, strobject *so, int *p) {
-	for(int i = 0; i < strlen(so->data); i++) {
-		if(i < strlen(current)) {
-			current[i] = so->data[i];		
-		} else {
-			current = (char*)realloc(current, strlen(current)+1);
-			strcat(current, &so->data[i]);
+	if(blen < clen) {
+		for(int i = 0; i < clen; i++) {
+			if(base[i] != current[i]) {
+				strobject *ch = (strobject*)malloc(sizeof(strobject));
+				initStrObject(ch, current[i], NULL, CHANGE);
+				insertStrObject(curr, ch);
+				curr = ch;
+				//free(ch);
+				//printf("ChangeA: %c, %c\n", base[i], current[i]);
+			} else {	
+				strobject *ch = (strobject*)malloc(sizeof(strobject));
+				initStrObject(ch, '\0', NULL, STAY);
+				insertStrObject(curr, ch);
+				curr = ch;
+				//free(ch);
+			}
 		}
-		*p+=1;
-	}
-	//printf("%d\n", *p);
-}
-
-void findDiff(char *base, char *current, commit *ca) {
-	int size = (strlen(base) >= strlen(current)) ? strlen(base) : strlen(current);
-	char buf[size];
-	int array_count = 0;
-	int bcount = 0;
-	int spcount = 0;
-	
-	for(int i = 0; i < size; i++) {
-		if(i < strlen(base) || i < strlen(current)) {
-			while(base[i] != current[i] && i < strlen(base)) {
-				//printf("%c", current[i]);
-				//strcat(buf, &current[i]);	
-				buf[bcount] = current[i];
-				bcount += 1;
-				i+=1;
+	} else {
+		for(int i = 0; i < blen; i++) {
+			if(base[i] != current[i]) {
+				strobject *ch = (strobject*)malloc(sizeof(strobject));
+				initStrObject(ch, current[i], NULL, CHANGE);
+				insertStrObject(curr, ch);
+				curr = ch;
+				//free(ch);
+				//printf("ChangeB: %c, %c\n", base[i], current[i]);
+			} else {
+				strobject *ch = (strobject*)malloc(sizeof(strobject));
+				initStrObject(ch, '\0', NULL, STAY);
+				insertStrObject(curr, ch);
+				curr = ch;
+				//free(ch);
 			}
-			if(strlen(buf) != 0) {
-				initStrObject(&ca[array_count].str, buf, NULL, strlen(buf));
-				ca[array_count].t = STR;
-				array_count++;
-				memset(&buf, 0, sizeof(buf));
-				bcount = 0;
-			}
-			while(base[i] == current[i]) {
-				//printf(" ");
-				spcount += 1;
-				i+=1;
-			}
-			if(strlen(buf) != 0) {
-				initSpaceObject(&ca[array_count].space, spcount, NULL);
-				ca[array_count].t = SPACE;
-				array_count++;
-				spcount = 0;
-			}
-		} else if(i >= strlen(base) || i >= strlen(current)) {
-			printf("%c", current[i]);	
 		}
 	}
-	printf("\n");
 }
 
 void printStrObject(strobject *so) {
@@ -98,9 +76,5 @@ void printBaseObject(baseobject *bo) {
 	printf("----------------------\n");
 	printf("%s\n", bo->data);
 	printf("----------------------\n");
-}
-
-void printSpaces(spaceobject *so) {
-	printf("%d\n", so->num_spaces);
 }
 
