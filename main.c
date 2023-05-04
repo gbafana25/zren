@@ -37,17 +37,13 @@ int main() {
 	strobject *t = (strobject*)malloc(sizeof(strobject));
 
 	initStrObject(head, 'H', NULL, CHANGE); 
-	/*
-	creating and inserting string objects currently 
-	doesn't work in loop (track.c)
-	*/
-	//initStrObject(t, 't', NULL, CHANGE);
-	//insertStrObject(head, t);
 	findDiff(base.data, mod.data, head);
-	//printStrObject(head);	
-	strobject *n = head;
+	// skip the head node
+	strobject *n = head->next;
 	while(n != NULL) {
-		printf("%c\n", n->data);
+		if(n->data != '\0') {
+			printf("%c\n", n->data);
+		}
 		n = n->next;
 	}
 	
