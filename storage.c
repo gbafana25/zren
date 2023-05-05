@@ -37,8 +37,7 @@ void writeCommit(strobject *head, char *filename) {
 }
 
 /*
-TODO: directly apply to base, or build linked list?
-pass either as parameter
+directly apply to base, or build linked list?
 */
 void readCommit(char *filename, baseobject *bo) {
 	FILE *rtest = fopen("commit", "r");
