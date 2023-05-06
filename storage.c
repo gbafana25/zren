@@ -1,9 +1,104 @@
 #include <stdio.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 
 #include "track.h"
 
+#define REPO_DIR ".rep"
+#define BASE_DIR ".rep/base/"
+#define ID_LEN 25
+
+void genCommitId(char *id) {
+	srand(time(0));
+	char *alphabet = "abcdefghijklmnopqrstuvwxyz";
+	for(int i = 0; i < ID_LEN; i++) {
+		int ind = (rand() % strlen(alphabet));
+		id[i] = alphabet[ind];
+	}
+	id[strlen(id)-1] = '\0';
+
+}
+
+void getBaseFile(char *filename, baseobject *base) {
+	FILE *f = fopen(filename, "r");
+	fseek(f, 0L, SEEK_END);
+	size_t s = ftell(f);
+	rewind(f);
+
+	char *src = (char*)malloc(sizeof(char)*s);
+	fread(src, sizeof(char), s, f);
+	src[strlen(src)-1] = '\0';
+	initBaseObject(base, src);
+	//printf("%s\n", src);
+}
+
+/*
+TODO: create commits directory, make directory for commits itself,
+and then write the commit files
+
+*/
+void createCommit() {
+	char cid[ID_LEN+1];
+	/*
+	TODO: check if exists, then regnerate.
+	otherwise continue
+	*/
+	genCommitId(cid);
+	
+	strobject head;
+	initStrObject(&head, 'H', NULL, CHANGE); 
+			
+	printf("Creating commit %s...\n", cid);
+		
+	DIR *dirobj = opendir(BASE_DIR);	
+	struct dirent *file_list = readdir(dirobj);
+	
+
+	while(file_list != NULL) {	
+		// only track files in dir base for now
+		if(file_list->d_type == DT_REG) {
+			// copy over file (w/ different extension
+			//printf("%s\n", file_list->d_name);
+			// read through each commit, applying changes to base, compare w/ most recent change and save	
+
+			// build full path to base file
+			char full[strlen(BASE_DIR)+strlen(file_list->d_name)+1];
+			memset(&full, 0, sizeof(full));
+			strcat(full, BASE_DIR);
+			strcat(full, file_list->d_name);
+			//full[strlen(full)-1] = '\0';
+			//printf("%s\n", full);
+
+			// 1. Get base
+			baseobject b;	
+			getBaseFile(full, &b);	
+			//printf("%s\n", b.data);
+
+			// 2. get modified
+			
+			file_list->d_name[strlen(file_list->d_name)-4] = '\0';
+			//printf("%s\n", file_list->d_name);
+			baseobject mod;
+			
+			getBaseFile(file_list->d_name, &mod);
+			//printf("%s\n", mod.data);
+
+			
+			findDiff(b.data, mod.data, &head);
+			
+			
+		}
+		file_list = readdir(dirobj);
+	}
+	
+	closedir(dirobj);
+}
+
 // return success/failure code?
-void writeCommit(strobject *head, char *filename) {
+void writeCommitFile(strobject *head, char *filename) {
 	// skip the head node
 	strobject *n = head->next;
 
@@ -25,7 +120,9 @@ void writeCommit(strobject *head, char *filename) {
 			// write string object
 			space_counter = 0;
 			fwrite(&strind, sizeof(strind), 1, commit);
-			fwrite(n, sizeof(strobject), 1, commit);
+			//fwrite(n, sizeof(strobject), 1, commit);
+
+			fwrite(&n->data, sizeof(char), 1, commit);
 		} else {
 			space_counter+=1;	
 		}
@@ -39,20 +136,21 @@ void writeCommit(strobject *head, char *filename) {
 /*
 directly apply to base, or build linked list?
 */
-void readCommit(char *filename, baseobject *bo) {
+void readCommitFile(char *filename, baseobject *bo) {
 	FILE *rtest = fopen("commit", "r");
 	bo->pos = 0;
 	// for reading, dont initialize as pointer
-	strobject re;
+	//strobject re;
+	char re;
 	int num_spaces;
 	char c;
 	// loop exit triggered by ending hex character 
 	while(1) {
 		fread(&c, sizeof(char), 1, rtest);
 		if(c == STR_IND) {
-			fread(&re, sizeof(strobject), 1, rtest);
+			fread(&re, sizeof(char), 1, rtest);
 			//printf("%c\n", re.data);
-			bo->data[bo->pos] = re.data;
+			bo->data[bo->pos] = re;
 			bo->pos+=1;
 		} else if(c == SPACE_IND) {
 			fread(&num_spaces, sizeof(int), 1, rtest);
@@ -69,3 +167,57 @@ void readCommit(char *filename, baseobject *bo) {
 	printf("%s\n", bo->data);
 
 }
+
+void copyFile(char *filename) {
+	// create new filename
+	char *ext = ".bas";
+	char base_copy[strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1];
+
+	strcpy(base_copy, BASE_DIR);
+	strcat(base_copy, filename);
+	strcat(base_copy, ext);
+	printf("%s\n", base_copy);
+
+	// load original file
+	FILE *f = fopen(filename, "r");
+	fseek(f, 0L, SEEK_END);
+	size_t s = ftell(f);
+	rewind(f);
+
+	char *src = (char*)malloc(sizeof(char)*s);
+	fread(src, sizeof(char), s, f);
+	src[strlen(src)-1] = '\0';
+		
+	// create new base version
+	FILE *b = fopen(base_copy, "w+");
+	fwrite(src, sizeof(char), s, b);
+	fclose(b);
+
+
+	
+}
+
+void initRepository(char *dirname) {
+	DIR *dirobj = opendir(dirname);	
+	struct dirent *file_list = readdir(dirobj);
+	int d = mkdir(REPO_DIR, S_IRWXU);
+	if(d < 0) {
+		printf("Repository already initialized for this directory.\n");
+		printf("Exiting..\n");
+		return;
+	} else {
+		mkdir(BASE_DIR, S_IRWXU);
+	}
+	while(file_list != NULL) {	
+		// only track files in dir base for now
+		if(file_list->d_type == DT_REG) {
+			// copy over file (w/ different extension
+			//printf("%s\n", file_list->d_name);
+			copyFile(file_list->d_name);
+		}
+		file_list = readdir(dirobj);
+	}
+	
+	closedir(dirobj);
+}
+

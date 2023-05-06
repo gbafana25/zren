@@ -3,8 +3,14 @@
 
 #include "track.h"
 
-void writeCommit(strobject *head, char *filename);
+void writeCommitFile(strobject *head, char *filename);
 // read and apply commit to base
-void readCommit(char *filename, baseobject *bo);
+void readCommitFile(char *filename, baseobject *bo);
+// scan directory for files and get base ("1st") commit
+void initRepository();
+void copyFile(char *filename); 
+void genCommitId(char *id);
+void createCommit(char *dirname);
+void getBaseFile(char *filename, baseobject *b);
 
 #endif

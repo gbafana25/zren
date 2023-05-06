@@ -5,5 +5,9 @@ main: $(wildcard *.c)
 
 clean:
 	rm main 
+	rm -rf .rep/
 run: all
 	./main
+init: all
+	./main init .
+	

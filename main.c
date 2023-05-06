@@ -6,42 +6,29 @@
 #include "track.h"
 #include "storage.h" 
 
-int main() { 
+int main(int argc, char **argv) { 
 
 	baseobject base;
 	baseobject mod;
 	//strobject test_string;
 	
-		
-	FILE *f = fopen("original", "r");
-	fseek(f, 0L, SEEK_END);
-	size_t s = ftell(f);
-	rewind(f);
+	if(argc == 3) {
+		if(strcmp("init", argv[1]) == 0) {
+			// TODO: initialize repository
+			initRepository(argv[2]);
+			exit(0);
+		} else if(strcmp("commit", argv[1]) == 0) {
+			createCommit(argv[2]);
+			exit(0);
+		}
+	}
 
-	// load original file
-	char *src = (char*)malloc(sizeof(char)*s);
-	fread(src, sizeof(char), s, f);
-	src[strlen(src)-1] = '\0';
-	initBaseObject(&base, src);
-	//printBaseObject(&base);
-	// load modified file
-	FILE *f2 = fopen("file", "r");
-	fseek(f2, 0L, SEEK_END);
-	size_t s2 = ftell(f2);
-	rewind(f2);
-
-	char *m = (char*)malloc(sizeof(char)*s2);
-	fread(m, sizeof(char), s2, f2);
-	m[strlen(m)-1] = '\0';
-	initBaseObject(&mod, m);
-	//printBaseObject(&mod);
-	strobject *head = (strobject*)malloc(sizeof(strobject));
-	strobject *t = (strobject*)malloc(sizeof(strobject));
-
+	/*
 	initStrObject(head, 'H', NULL, CHANGE); 
 	findDiff(base.data, mod.data, head);
-	writeCommit(head, "commit");		
+	writeCommitFile(head, "commit");		
 
-	readCommit("commit", &base);
+	readCommitFile("commit", &base);
+	*/
 	
 }
