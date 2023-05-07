@@ -9,6 +9,7 @@
 
 #define REPO_DIR ".rep"
 #define BASE_DIR ".rep/base/"
+#define COMM_DIR ".rep/commits/"
 #define ID_LEN 25
 
 void genCommitId(char *id) {
@@ -42,16 +43,32 @@ and then write the commit files
 */
 void createCommit() {
 	char cid[ID_LEN+1];
+	//char full_cpath[strlen(COMM_DIR)+ID_LEN+1];
 	/*
 	TODO: check if exists, then regnerate.
 	otherwise continue
 	*/
 	genCommitId(cid);
+	/*
+	strcat(full_cpath, COMM_DIR);
+	strcat(full_cpath, cid);
+	full_cpath[strlen(full_cpath)-1] = '\0';
+	*/
 	
+	
+	//printf("%s\n", full_cpath);
+	/*
+	int d = mkdir(full_cpath, S_IRWXU);
+	if(d < 0) {
+		return;
+	}
+	*/
+
 	strobject head;
 	initStrObject(&head, 'H', NULL, CHANGE); 
 			
 	printf("Creating commit %s...\n", cid);
+	
 		
 	DIR *dirobj = opendir(BASE_DIR);	
 	struct dirent *file_list = readdir(dirobj);
@@ -171,7 +188,9 @@ void readCommitFile(char *filename, baseobject *bo) {
 void copyFile(char *filename) {
 	// create new filename
 	char *ext = ".bas";
-	char base_copy[strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1];
+	//char base_copy[strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1];
+	printf("%d\n", strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1);
+	char *base_copy = (char*)malloc(sizeof(char)*strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1);
 
 	strcpy(base_copy, BASE_DIR);
 	strcat(base_copy, filename);
@@ -183,6 +202,7 @@ void copyFile(char *filename) {
 	fseek(f, 0L, SEEK_END);
 	size_t s = ftell(f);
 	rewind(f);
+	fclose(f);
 
 	char *src = (char*)malloc(sizeof(char)*s);
 	fread(src, sizeof(char), s, f);
@@ -193,7 +213,8 @@ void copyFile(char *filename) {
 	fwrite(src, sizeof(char), s, b);
 	fclose(b);
 
-
+	free(src);
+	free(base_copy);
 	
 }
 
@@ -207,6 +228,7 @@ void initRepository(char *dirname) {
 		return;
 	} else {
 		mkdir(BASE_DIR, S_IRWXU);
+		mkdir(COMM_DIR, S_IRWXU);
 	}
 	while(file_list != NULL) {	
 		// only track files in dir base for now

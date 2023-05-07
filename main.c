@@ -17,8 +17,10 @@ int main(int argc, char **argv) {
 			// TODO: initialize repository
 			initRepository(argv[2]);
 			exit(0);
-		} else if(strcmp("commit", argv[1]) == 0) {
-			createCommit(argv[2]);
+		}
+	} else if(argc == 2) {
+		 if(strcmp("commit", argv[1]) == 0) {
+			createCommit();
 			exit(0);
 		}
 	}
