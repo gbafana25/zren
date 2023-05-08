@@ -43,20 +43,18 @@ and then write the commit files
 */
 void createCommit() {
 	char cid[ID_LEN+1];
-	//char full_cpath[strlen(COMM_DIR)+ID_LEN+1];
+	char full_cpath[strlen(COMM_DIR)+ID_LEN+1];
 	/*
 	TODO: check if exists, then regnerate.
 	otherwise continue
 	*/
 	genCommitId(cid);
-	/*
 	strcat(full_cpath, COMM_DIR);
 	strcat(full_cpath, cid);
 	full_cpath[strlen(full_cpath)-1] = '\0';
-	*/
 	
 	
-	//printf("%s\n", full_cpath);
+	printf("%s\n", full_cpath);
 	/*
 	int d = mkdir(full_cpath, S_IRWXU);
 	if(d < 0) {
@@ -188,32 +186,33 @@ void readCommitFile(char *filename, baseobject *bo) {
 void copyFile(char *filename) {
 	// create new filename
 	char *ext = ".bas";
-	//char base_copy[strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1];
-	printf("%d\n", strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1);
 	char *base_copy = (char*)malloc(sizeof(char)*strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1);
 
 	strcpy(base_copy, BASE_DIR);
 	strcat(base_copy, filename);
 	strcat(base_copy, ext);
-	printf("%s\n", base_copy);
+	//printf("%s\n", base_copy);
 
 	// load original file
 	FILE *f = fopen(filename, "r");
 	fseek(f, 0L, SEEK_END);
 	size_t s = ftell(f);
 	rewind(f);
-	fclose(f);
 
-	char *src = (char*)malloc(sizeof(char)*s);
+	printf("%s: %d\n", base_copy, s);
+	
+	//char *src = (char*)malloc(sizeof(char)*s+1);
+	char src[s+1];
 	fread(src, sizeof(char), s, f);
 	src[strlen(src)-1] = '\0';
+	fclose(f);
 		
 	// create new base version
 	FILE *b = fopen(base_copy, "w+");
 	fwrite(src, sizeof(char), s, b);
 	fclose(b);
 
-	free(src);
+	//free(src);
 	free(base_copy);
 	
 }

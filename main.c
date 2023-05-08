@@ -23,6 +23,9 @@ int main(int argc, char **argv) {
 			createCommit();
 			exit(0);
 		}
+	} else {
+		printf("Wrong command - use init [dir] or commit\n");
+		exit(0);
 	}
 
 	/*
