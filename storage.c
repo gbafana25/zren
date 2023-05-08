@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -73,18 +74,10 @@ void getBaseFile(char *filename, baseobject *base) {
 	//printf("%s\n", src);
 }
 
-/*
-TODO: create commits directory, make directory for commits itself,
-and then write the commit files
-
-*/
-void createCommit() {
+void createCommit(char **ign, int i_size) {
 	char cid[ID_LEN+1];
 	char full_cpath[strlen(COMM_DIR)+ID_LEN+1];
-	/*
-	TODO: check if exists, then regnerate.
-	otherwise continue
-	*/
+	
 	genCommitId(cid);
 	strcat(full_cpath, COMM_DIR);
 	strcat(full_cpath, cid);
@@ -115,49 +108,64 @@ void createCommit() {
 
 	while(file_list != NULL) {	
 		// only track files in dir base for now
-		if(file_list->d_type == DT_REG && strcmp(file_list->d_name, "main") != 0) {
+		if(file_list->d_type == DT_REG) {// && strcmp(file_list->d_name, "main") != 0) {
 			// copy over file (w/ different extension
 			//printf("%s\n", file_list->d_name);
 			// read through each commit, applying changes to base, compare w/ most recent change and save	
 
-			// build full path to base file
-			strobject head;
-			initStrObject(&head, 'H', NULL, CHANGE); 
-			char full[strlen(BASE_DIR)+strlen(file_list->d_name)+1];
-			memset(&full, 0, sizeof(full));
-			strcat(full, BASE_DIR);
-			strcat(full, file_list->d_name);
-			//full[strlen(full)-1] = '\0';
-			//printf("%s\n", full);
+			// check if in .ignore first
+			bool end = false;
+			for(int i = 0; i < i_size; i++) {
+				if(ign[i][0] == '*') {
+					// for file extensions
+				} else if(strncmp(file_list->d_name, ign[i], strlen(file_list->d_name)-4) == 0) {
+					printf("ignoring %s...\n", ign[i]);
+					printf("%s\n", file_list->d_name);
+					printf("\n");
+					end = true;
+				}
+			}
+			
+			if(end == false) {
+				// build full path to base file
+				strobject head;
+				initStrObject(&head, 'H', NULL, CHANGE); 
+				char full[strlen(BASE_DIR)+strlen(file_list->d_name)+1];
+				memset(&full, 0, sizeof(full));
+				strcat(full, BASE_DIR);
+				strcat(full, file_list->d_name);
+				//full[strlen(full)-1] = '\0';
+				//printf("%s\n", full);
 
-			// 1. Get base
-			baseobject b;	
-			getBaseFile(full, &b);	
-			//printf("%s\n", b.data);
+				// 1. Get base
+				baseobject b;	
+				getBaseFile(full, &b);	
+				//printf("%s\n", b.data);
 
-			// 2. get modified
+				// 2. get modified
 			
-			file_list->d_name[strlen(file_list->d_name)-4] = '\0';
-			//printf("%s\n", file_list->d_name);
-			baseobject mod;
+				file_list->d_name[strlen(file_list->d_name)-4] = '\0';
+				//printf("%s\n", file_list->d_name);
+				baseobject mod;
 			
-			getBaseFile(file_list->d_name, &mod);
-			//printf("%s\n", mod.data);
+				getBaseFile(file_list->d_name, &mod);
+				//printf("%s\n", mod.data);
 
 			
-			findDiff(b.data, mod.data, &head);
+				findDiff(b.data, mod.data, &head);
 			
-			char *ext = ".chg";
-			char *commitfile = (char*)malloc(sizeof(char)*(strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+4));
+				char *ext = ".chg";
+				char *commitfile = (char*)malloc(sizeof(char)*(strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+4));
 
-			strcat(commitfile, full_cpath);
-			strcat(commitfile, "/");
-			strcat(commitfile, file_list->d_name);
-			strcat(commitfile, ext);
-			commitfile[strlen(commitfile)] = '\0';
-			//printf("%s\n", commitfile);
-			writeCommitFile(&head, commitfile);		
+				strcat(commitfile, full_cpath);
+				strcat(commitfile, "/");
+				strcat(commitfile, file_list->d_name);
+				strcat(commitfile, ext);
+				commitfile[strlen(commitfile)] = '\0';
+				//printf("%s\n", commitfile);
 			
+				writeCommitFile(&head, commitfile);		
+			}	
 		}
 		file_list = readdir(dirobj);
 	}

@@ -10,7 +10,7 @@ void readCommitFile(char *filename, baseobject *bo);
 void initRepository();
 void copyFile(char *filename); 
 void genCommitId(char *id);
-void createCommit();
+void createCommit(char **ign, int isize);
 void getBaseFile(char *filename, baseobject *b);
 
 #endif

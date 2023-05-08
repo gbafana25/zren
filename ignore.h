@@ -9,7 +9,7 @@ typedef enum i_type_enum {
 } i_type;
 
 
-char *openIgnoreFile(char **ignore);
+char *openIgnoreFile();
 char **parseIgnoreFile(char *data, int *size);
 
 #endif

@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 			char *data = openIgnoreFile();
 			int s = 0;
 			char **ign = parseIgnoreFile(data, &s);
-			createCommit(ign);
+			createCommit(ign, s);
 			exit(0);
 		} else if(strcmp("ig", argv[1]) == 0) {
 			char *data = openIgnoreFile();
