@@ -4,3 +4,4 @@ file
 *.swp
 commit
 .rep/
+.ignore

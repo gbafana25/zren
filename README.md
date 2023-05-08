@@ -14,8 +14,8 @@ version control system
 
 ## Directory Structure
 - base `.rep` folder in directory
-	- file w/ list of commit hashes/identifiers
+	- (loop through `DIR` object instead?) file w/ list of commit hashes/identifiers
 	- [x] each commit identifier will be a directory inside `commits`
-	- each changefile (`.chg`) will have same name as source file, but with different extentions
 	- [x] `base` directory will have files from first commit
 	- have `.gitignore`-like file
+		- identifiers: f - file, ext - extension

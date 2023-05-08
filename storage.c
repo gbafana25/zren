@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #include "track.h"
 
@@ -21,6 +22,42 @@ void genCommitId(char *id) {
 	}
 	id[strlen(id)-1] = '\0';
 
+}
+
+// return success/failure code?
+void writeCommitFile(strobject *head, char *filename) {
+	// skip the head node
+	strobject *n = head->next;
+
+	// writing commit to file works
+	FILE *commit = fopen(filename, "w+");
+	
+	int space_counter = 0;
+	char strind = STR_IND;
+	char spind = SPACE_IND;
+	char endind = END_FILE;
+
+	while(n != NULL) {
+		if(n->t != STAY) {
+			if(space_counter != 0) {
+				// write space object
+				fwrite(&spind, sizeof(char), 1, commit);
+				fwrite(&space_counter, sizeof(int), 1, commit);
+			}
+			// write string object
+			space_counter = 0;
+			fwrite(&strind, sizeof(strind), 1, commit);
+			//fwrite(n, sizeof(strobject), 1, commit);
+
+			fwrite(&n->data, sizeof(char), 1, commit);
+		} else {
+			space_counter+=1;	
+		}
+		n = n->next;
+	}
+	// write custom end of file character
+	fwrite(&endind, sizeof(endind), 1, commit);	
+	fclose(commit);
 }
 
 void getBaseFile(char *filename, baseobject *base) {
@@ -128,41 +165,7 @@ void createCommit() {
 	closedir(dirobj);
 }
 
-// return success/failure code?
-void writeCommitFile(strobject *head, char *filename) {
-	// skip the head node
-	strobject *n = head->next;
 
-	// writing commit to file works
-	FILE *commit = fopen(filename, "w+");
-	
-	int space_counter = 0;
-	char strind = STR_IND;
-	char spind = SPACE_IND;
-	char endind = END_FILE;
-
-	while(n != NULL) {
-		if(n->t != STAY) {
-			if(space_counter != 0) {
-				// write space object
-				fwrite(&spind, sizeof(char), 1, commit);
-				fwrite(&space_counter, sizeof(int), 1, commit);
-			}
-			// write string object
-			space_counter = 0;
-			fwrite(&strind, sizeof(strind), 1, commit);
-			//fwrite(n, sizeof(strobject), 1, commit);
-
-			fwrite(&n->data, sizeof(char), 1, commit);
-		} else {
-			space_counter+=1;	
-		}
-		n = n->next;
-	}
-	// write custom end of file character
-	fwrite(&endind, sizeof(endind), 1, commit);	
-	fclose(commit);
-}
 
 /*
 directly apply to base, or build linked list?

@@ -5,6 +5,7 @@
 
 #include "track.h"
 #include "storage.h" 
+#include "ignore.h"
 
 int main(int argc, char **argv) { 
 
@@ -14,13 +15,26 @@ int main(int argc, char **argv) {
 	
 	if(argc == 3) {
 		if(strcmp("init", argv[1]) == 0) {
-			// TODO: initialize repository
 			initRepository(argv[2]);
 			exit(0);
 		}
 	} else if(argc == 2) {
-		 if(strcmp("commit", argv[1]) == 0) {
-			createCommit();
+		if(strcmp("commit", argv[1]) == 0) {
+			char *data = openIgnoreFile();
+			int s = 0;
+			char **ign = parseIgnoreFile(data, &s);
+			createCommit(ign);
+			exit(0);
+		} else if(strcmp("ig", argv[1]) == 0) {
+			char *data = openIgnoreFile();
+			int s = 0;
+			char **ign = parseIgnoreFile(data, &s);	
+			/*
+			for(int i = 0; i < s; i++) {
+				printf("%s\n", ign[i]);
+			}
+			*/
+			
 			exit(0);
 		}
 	} else {
