@@ -54,16 +54,20 @@ void createCommit() {
 	full_cpath[strlen(full_cpath)-1] = '\0';
 	
 	
-	printf("%s\n", full_cpath);
-	/*
+	//printf("%s\n", full_cpath);
 	int d = mkdir(full_cpath, S_IRWXU);
-	if(d < 0) {
-		return;
-	}
-	*/
 
-	strobject head;
-	initStrObject(&head, 'H', NULL, CHANGE); 
+	while(d < 0) {
+		memset(&cid, 0, sizeof(cid));
+		memset(&full_cpath, 0, sizeof(full_cpath));
+		genCommitId(cid);
+		strcat(full_cpath, COMM_DIR);
+		strcat(full_cpath, cid);
+		full_cpath[strlen(full_cpath)-1] = '\0';
+
+		d = mkdir(full_cpath, S_IRWXU);
+	}
+
 			
 	printf("Creating commit %s...\n", cid);
 	
@@ -74,12 +78,14 @@ void createCommit() {
 
 	while(file_list != NULL) {	
 		// only track files in dir base for now
-		if(file_list->d_type == DT_REG) {
+		if(file_list->d_type == DT_REG && strcmp(file_list->d_name, "main") != 0) {
 			// copy over file (w/ different extension
 			//printf("%s\n", file_list->d_name);
 			// read through each commit, applying changes to base, compare w/ most recent change and save	
 
 			// build full path to base file
+			strobject head;
+			initStrObject(&head, 'H', NULL, CHANGE); 
 			char full[strlen(BASE_DIR)+strlen(file_list->d_name)+1];
 			memset(&full, 0, sizeof(full));
 			strcat(full, BASE_DIR);
@@ -104,6 +110,16 @@ void createCommit() {
 			
 			findDiff(b.data, mod.data, &head);
 			
+			char *ext = ".chg";
+			char *commitfile = (char*)malloc(sizeof(char)*(strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+4));
+
+			strcat(commitfile, full_cpath);
+			strcat(commitfile, "/");
+			strcat(commitfile, file_list->d_name);
+			strcat(commitfile, ext);
+			commitfile[strlen(commitfile)] = '\0';
+			//printf("%s\n", commitfile);
+			writeCommitFile(&head, commitfile);		
 			
 		}
 		file_list = readdir(dirobj);
