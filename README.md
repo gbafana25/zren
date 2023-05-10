@@ -19,3 +19,6 @@ version control system
 	- [x] `base` directory will have files from first commit
 	- have `.gitignore`-like file
 		- identifiers: f - file, ext - extension
+
+## TODO
+- make new commits by comparing prev. commit

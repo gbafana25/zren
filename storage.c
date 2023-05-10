@@ -118,9 +118,16 @@ void createCommit(char **ign, int i_size) {
 			for(int i = 0; i < i_size; i++) {
 				if(ign[i][0] == '*') {
 					// for file extensions
+					int offset = strlen(file_list->d_name)-strlen(ign[i])-3;
+
+					if(strncmp(file_list->d_name+offset, ign[i]+1, strlen(ign[i])-1) == 0) {
+						printf("ignoring %s...\n", ign[i]);
+						printf("\n");
+						end = true;
+
+					}
 				} else if(strncmp(file_list->d_name, ign[i], strlen(file_list->d_name)-4) == 0) {
 					printf("ignoring %s...\n", ign[i]);
-					printf("%s\n", file_list->d_name);
 					printf("\n");
 					end = true;
 				}
@@ -255,6 +262,10 @@ void initRepository(char *dirname) {
 	} else {
 		mkdir(BASE_DIR, S_IRWXU);
 		mkdir(COMM_DIR, S_IRWXU);
+		// create file to store current commit
+		FILE *head = fopen(".rep/HEAD", "w+");
+		fprintf(head, "%s", "BASE");
+		fclose(head);
 	}
 	while(file_list != NULL) {	
 		// only track files in dir base for now
