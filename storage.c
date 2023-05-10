@@ -77,7 +77,19 @@ void getBaseFile(char *filename, baseobject *base) {
 }
 
 void getMostRecent(baseobject *bo) {	
-	printf("%s\n", bo->data);
+	//printf("%s\n", bo->data);
+	//char *cdir = (char*)malloc(sizeof(char)*strlen(COMM_DIR)+strlen(curr_commit)+1);
+	if(bo == NULL) {
+		return;	
+	}
+	DIR *c = opendir(COMM_DIR);
+	struct dirent *commits = readdir(c);
+	while(commits != NULL) {
+		printf("%s\n", commits->d_name);
+		commits = readdir(c);
+	}
+	closedir(c);
+
 }
 
 void createCommit(char **ign, int i_size) {
@@ -192,7 +204,7 @@ void createCommit(char **ign, int i_size) {
 				strcat(commitfile, file_list->d_name);
 				strcat(commitfile, ext);
 				//commitfile[strlen(commitfile)-1] = '\0';
-				printf("%s\n", commitfile);
+				//printf("%s\n", commitfile);
 			
 				writeCommitFile(&head, commitfile);		
 				// only this works for clearing commitfile

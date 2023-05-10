@@ -21,4 +21,4 @@ version control system
 		- identifiers: f - file, ext - extension
 
 ## TODO
-- make new commits by comparing prev. commit
+- make new commits by comparing prev. commit (current function gives persistent malloc error when enabled)
