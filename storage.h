@@ -12,5 +12,6 @@ void copyFile(char *filename);
 void genCommitId(char *id);
 void createCommit(char **ign, int isize);
 void getBaseFile(char *filename, baseobject *b);
+void getMostRecent();
 
 #endif

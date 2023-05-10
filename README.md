@@ -22,3 +22,5 @@ version control system
 
 ## TODO
 - make new commits by comparing prev. commit (current function gives persistent malloc error when enabled)
+- if there's a malloc error, `make clean` and compile again
+	- figure out why `getMostRecent()` crashes w/ `baseobject` argument (pass string instead?)

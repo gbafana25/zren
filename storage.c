@@ -76,20 +76,26 @@ void getBaseFile(char *filename, baseobject *base) {
 	//printf("%s\n", src);
 }
 
-void getMostRecent(baseobject *bo) {	
+void getMostRecent() {	
 	//printf("%s\n", bo->data);
 	//char *cdir = (char*)malloc(sizeof(char)*strlen(COMM_DIR)+strlen(curr_commit)+1);
-	if(bo == NULL) {
-		return;	
-	}
-	DIR *c = opendir(COMM_DIR);
-	struct dirent *commits = readdir(c);
+	DIR *old = opendir(".rep/commits/");
+	struct dirent *commits = readdir(old);
+	char *ex1 = ".";
+	char *ex2 = "..";
 	while(commits != NULL) {
-		printf("%s\n", commits->d_name);
-		commits = readdir(c);
-	}
-	closedir(c);
+		if(strncmp(commits->d_name, ex1, 1) == 0 || strncmp(commits->d_name, ex2, 2) == 0) {
+			commits = readdir(old);
+			continue;
 
+		} if(commits->d_type == DT_DIR) {
+			//printf("%s\n", commits->d_name);
+			// apply commit to baseobject
+
+			commits = readdir(old);
+		} 	
+	}
+	closedir(old);
 }
 
 void createCommit(char **ign, int i_size) {
@@ -106,6 +112,7 @@ void createCommit(char **ign, int i_size) {
 
 	// get current commit (HEAD)
 	bool is_base;
+	//getMostRecent();
 	FILE *head = fopen(".rep/HEAD", "r");
 	char curr_commit[ID_LEN+1];
 	fscanf(head, "%s", curr_commit);
@@ -181,7 +188,8 @@ void createCommit(char **ign, int i_size) {
 				baseobject b;	
 				getBaseFile(full, &b);	
 				// if base isn't most recent
-				//getMostRecent(&b);
+				getMostRecent();
+				
 
 				// 2. get modified
 			
@@ -216,7 +224,7 @@ void createCommit(char **ign, int i_size) {
 	
 	closedir(dirobj);
 	//free(file_list);
-	free(commitfile);
+	//free(commitfile);
 }
 
 
