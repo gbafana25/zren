@@ -29,6 +29,7 @@ void genCommitId(char *id) {
 void writeCommitFile(strobject *head, char *filename) {
 	// skip the head node
 	strobject *n = head->next;
+	//printf("%s\n", filename);
 
 	// writing commit to file works
 	FILE *commit = fopen(filename, "w+");
@@ -71,22 +72,42 @@ void getBaseFile(char *filename, baseobject *base) {
 	fread(src, sizeof(char), s, f);
 	src[strlen(src)-1] = '\0';
 	initBaseObject(base, src);
+	fclose(f);
 	//printf("%s\n", src);
+}
+
+void getMostRecent(baseobject *bo) {	
+	printf("%s\n", bo->data);
 }
 
 void createCommit(char **ign, int i_size) {
 	char cid[ID_LEN+1];
 	char full_cpath[strlen(COMM_DIR)+ID_LEN+1];
+	char *commitfile = (char*)malloc(sizeof(char)*4);
+	memset(&full_cpath, 0, sizeof(full_cpath));
+	memset(&cid, 0, sizeof(cid));
 	
 	genCommitId(cid);
 	strcat(full_cpath, COMM_DIR);
 	strcat(full_cpath, cid);
-	full_cpath[strlen(full_cpath)-1] = '\0';
+	//full_cpath[strlen(full_cpath)-1] = '\0';
+
+	// get current commit (HEAD)
+	bool is_base;
+	FILE *head = fopen(".rep/HEAD", "r");
+	char curr_commit[ID_LEN+1];
+	fscanf(head, "%s", curr_commit);
+	//printf("current: %s\n", curr_commit);
+	fclose(head);
+	if(strncmp("BASE", curr_commit, strlen("BASE")) == 0) {
+		is_base = true;
+	} else {
+		is_base = false;
+	}
 	
-	
-	//printf("%s\n", full_cpath);
 	int d = mkdir(full_cpath, S_IRWXU);
 
+	// keep generating commit id if current is duplicate
 	while(d < 0) {
 		memset(&cid, 0, sizeof(cid));
 		memset(&full_cpath, 0, sizeof(full_cpath));
@@ -144,10 +165,11 @@ void createCommit(char **ign, int i_size) {
 				//full[strlen(full)-1] = '\0';
 				//printf("%s\n", full);
 
-				// 1. Get base
+				// 1. TODO: Get base (or most recent)
 				baseobject b;	
 				getBaseFile(full, &b);	
-				//printf("%s\n", b.data);
+				// if base isn't most recent
+				//getMostRecent(&b);
 
 				// 2. get modified
 			
@@ -162,22 +184,27 @@ void createCommit(char **ign, int i_size) {
 				findDiff(b.data, mod.data, &head);
 			
 				char *ext = ".chg";
-				char *commitfile = (char*)malloc(sizeof(char)*(strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+4));
+				commitfile = (char*)realloc(commitfile, sizeof(char)*(strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+4));
+				//char commitfile[strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+2];
 
 				strcat(commitfile, full_cpath);
 				strcat(commitfile, "/");
 				strcat(commitfile, file_list->d_name);
 				strcat(commitfile, ext);
-				commitfile[strlen(commitfile)] = '\0';
-				//printf("%s\n", commitfile);
+				//commitfile[strlen(commitfile)-1] = '\0';
+				printf("%s\n", commitfile);
 			
 				writeCommitFile(&head, commitfile);		
+				// only this works for clearing commitfile
+				commitfile[0] = '\0';
 			}	
 		}
 		file_list = readdir(dirobj);
 	}
 	
 	closedir(dirobj);
+	//free(file_list);
+	free(commitfile);
 }
 
 
@@ -186,7 +213,7 @@ void createCommit(char **ign, int i_size) {
 directly apply to base, or build linked list?
 */
 void readCommitFile(char *filename, baseobject *bo) {
-	FILE *rtest = fopen("commit", "r");
+	FILE *rtest = fopen(filename, "r");
 	bo->pos = 0;
 	// for reading, dont initialize as pointer
 	//strobject re;
