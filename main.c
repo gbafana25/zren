@@ -28,12 +28,7 @@ int main(int argc, char **argv) {
 		} else if(strcmp("ig", argv[1]) == 0) {
 			char *data = openIgnoreFile();
 			int s = 0;
-			char **ign = parseIgnoreFile(data, &s);	
-			/*
-			for(int i = 0; i < s; i++) {
-				printf("%s\n", ign[i]);
-			}
-			*/
+			char **ign = parseIgnoreFile(data, &s);		
 			
 			exit(0);
 		}
@@ -41,13 +36,6 @@ int main(int argc, char **argv) {
 		printf("Wrong command - use init [dir] or commit\n");
 		exit(0);
 	}
-
-	/*
-	initStrObject(head, 'H', NULL, CHANGE); 
-	findDiff(base.data, mod.data, head);
-	writeCommitFile(head, "commit");		
-
-	readCommitFile("commit", &base);
-	*/
+	
 	
 }

@@ -68,12 +68,14 @@ void getBaseFile(char *filename, baseobject *base) {
 	size_t s = ftell(f);
 	rewind(f);
 
-	char *src = (char*)malloc(sizeof(char)*s);
+	printf("%d\n", s);
+	char *src = (char*)malloc(sizeof(char)*(s+1));
 	fread(src, sizeof(char), s, f);
 	src[strlen(src)-1] = '\0';
 	initBaseObject(base, src);
 	fclose(f);
 	//printf("%s\n", src);
+	//free(src);
 }
 
 void getMostRecent() {	
@@ -175,6 +177,7 @@ void createCommit(char **ign, int i_size) {
 			
 			if(end == false) {
 				// build full path to base file
+				//printf("%s\n", file_list->d_name);
 				strobject head;
 				initStrObject(&head, 'H', NULL, CHANGE); 
 				char full[strlen(BASE_DIR)+strlen(file_list->d_name)+1];
@@ -187,8 +190,9 @@ void createCommit(char **ign, int i_size) {
 				// 1. TODO: Get base (or most recent)
 				baseobject b;	
 				getBaseFile(full, &b);	
+				//printf("error here\n");
 				// if base isn't most recent
-				getMostRecent();
+				//getMostRecent();
 				
 
 				// 2. get modified
@@ -294,7 +298,7 @@ void copyFile(char *filename) {
 	fclose(b);
 
 	//free(src);
-	free(base_copy);
+	//free(base_copy);
 	
 }
 
