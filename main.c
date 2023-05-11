@@ -11,7 +11,6 @@ int main(int argc, char **argv) {
 
 	baseobject base;
 	baseobject mod;
-	//strobject test_string;
 	
 	if(argc == 3) {
 		if(strcmp("init", argv[1]) == 0) {
@@ -32,6 +31,10 @@ int main(int argc, char **argv) {
 			char **ign = parseIgnoreFile(data, &s);		
 			
 			exit(0);
+		} else {
+			printf("Wrong command - use init [dir] or commit\n");
+			exit(0);
+
 		}
 	} else {
 		printf("Wrong command - use init [dir] or commit\n");

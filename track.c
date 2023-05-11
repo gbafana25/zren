@@ -12,7 +12,6 @@ void initBaseObject(baseobject *bo, char *data) {
 
 void initStrObject(strobject *so, char data, strobject* n, types tp) {
 	so->data = data;
-	//printf("%c\n", so->data);
 	so->next = n;	
 	so->t = tp;
 }
@@ -38,14 +37,11 @@ void findDiff(char *base, char *current, strobject *head) {
 				initStrObject(ch, current[i], NULL, CHANGE);
 				insertStrObject(curr, ch);
 				curr = ch;
-				//free(ch);
-				//printf("ChangeA: %c, %c\n", base[i], current[i]);
 			} else {	
 				strobject *ch = (strobject*)malloc(sizeof(strobject));
 				initStrObject(ch, '\0', NULL, STAY);
 				insertStrObject(curr, ch);
 				curr = ch;
-				//free(ch);
 			}
 		}
 	} else {
@@ -55,14 +51,11 @@ void findDiff(char *base, char *current, strobject *head) {
 				initStrObject(ch, current[i], NULL, CHANGE);
 				insertStrObject(curr, ch);
 				curr = ch;
-				//free(ch);
-				//printf("ChangeB: %c, %c\n", base[i], current[i]);
 			} else {
 				strobject *ch = (strobject*)malloc(sizeof(strobject));
 				initStrObject(ch, '\0', NULL, STAY);
 				insertStrObject(curr, ch);
 				curr = ch;
-				//free(ch);
 			}
 		}
 	}

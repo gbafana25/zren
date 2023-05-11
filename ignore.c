@@ -40,7 +40,6 @@ char **parseIgnoreFile(char *data, int *s) {
 			if(data[i] == '\n') {
 				break;
 			}
-			//printf("%c", data[i]);
 			count++;	
 			i++;
 		}
@@ -49,7 +48,6 @@ char **parseIgnoreFile(char *data, int *s) {
 			ign[im_ind] = (char*)malloc(sizeof(char)*(count+1));
 			strncpy(ign[im_ind], data+start, count);
 			ign[im_ind][strlen(ign[im_ind])] = '\0';
-			//printf("%s\n", ign[im_ind]);
 		
 			count = 0;
 			im_ind++;
