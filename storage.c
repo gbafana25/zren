@@ -25,11 +25,43 @@ void genCommitId(char *id) {
 
 }
 
+void readCommitFile(char *filename, baseobject *bo) {
+	FILE *rtest = fopen(filename, "r");
+	bo->pos = 0;
+	// for reading, dont initialize as pointer
+	//strobject re;
+	char re;
+	int num_spaces;
+	char c;
+	// loop exit triggered by ending hex character 
+	while(1) {
+		fread(&c, sizeof(char), 1, rtest);
+		if(c == STR_IND) {
+			fread(&re, sizeof(char), 1, rtest);
+			//printf("%c\n", re.data);
+			bo->data[bo->pos] = re;
+			bo->pos+=1;
+		} else if(c == SPACE_IND) {
+			fread(&num_spaces, sizeof(int), 1, rtest);
+			//printf("%d\n", num_spaces);
+			bo->pos += num_spaces;
+			num_spaces = 0;
+		} else if(c == END_FILE) {
+			break;
+		}
+		
+	}	
+	
+	fclose(rtest);
+	//printf("%s\n", bo->data);
+
+}
+
 // return success/failure code?
 void writeCommitFile(strobject *head, char *filename) {
 	// skip the head node
 	strobject *n = head->next;
-	//printf("%s\n", filename);
+	printf("error\n");
 
 	// writing commit to file works
 	FILE *commit = fopen(filename, "w+");
@@ -68,36 +100,58 @@ void getBaseFile(char *filename, baseobject *base) {
 	size_t s = ftell(f);
 	rewind(f);
 
-	printf("%d\n", s);
+	//printf("%d\n", s);
+
 	char *src = (char*)malloc(sizeof(char)*(s+1));
 	fread(src, sizeof(char), s, f);
 	src[strlen(src)-1] = '\0';
 	initBaseObject(base, src);
 	fclose(f);
 	//printf("%s\n", src);
-	//free(src);
+	free(src);
 }
 
-void getMostRecent() {	
-	//printf("%s\n", bo->data);
-	//char *cdir = (char*)malloc(sizeof(char)*strlen(COMM_DIR)+strlen(curr_commit)+1);
+char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit) {	
+	//char *full_path = (char*)malloc(sizeof(char)*3);
+	//memset(&full_path, 0, sizeof(full_path));
 	DIR *old = opendir(".rep/commits/");
+	//printf("%s\n", curr_commit);
 	struct dirent *commits = readdir(old);
 	char *ex1 = ".";
 	char *ex2 = "..";
+	char *newext = "chg";
 	while(commits != NULL) {
-		if(strncmp(commits->d_name, ex1, 1) == 0 || strncmp(commits->d_name, ex2, 2) == 0) {
+		if(strncmp(commits->d_name, ex1, 1) == 0 || strncmp(commits->d_name, ex2, 2) == 0 || strncmp(commits->d_name, curr_commit, strlen(curr_commit)) == 0) {
 			commits = readdir(old);
 			continue;
 
 		} if(commits->d_type == DT_DIR) {
 			//printf("%s\n", commits->d_name);
 			// apply commit to baseobject
+			
+			// build path
+			size_t s = strlen(COMM_DIR)+strlen(commits->d_name)+strlen(base_name)+strlen(newext)+3; 
+			char full_path[s];
+			strncat(full_path, COMM_DIR, strlen(COMM_DIR));
+			strncat(full_path, commits->d_name, strlen(commits->d_name));
+			strcat(full_path, "/");
+			strncat(full_path, base_name, strlen(base_name)-3);
+			strcat(full_path, newext);
+
+			printf("%s\n", full_path);
+			readCommitFile(full_path, bo);		
+			//printf("%s\n", bo->data);
+			//full_path[strlen(full_path)-1] = '\0';
 
 			commits = readdir(old);
+			//free(full_path);
+			full_path[0] = '\0';
+			
 		} 	
 	}
 	closedir(old);
+	//free(full_path);
+	return bo->data;
 }
 
 void createCommit(char **ign, int i_size) {
@@ -114,7 +168,6 @@ void createCommit(char **ign, int i_size) {
 
 	// get current commit (HEAD)
 	bool is_base;
-	//getMostRecent();
 	FILE *head = fopen(".rep/HEAD", "r");
 	char curr_commit[ID_LEN+1];
 	fscanf(head, "%s", curr_commit);
@@ -140,6 +193,9 @@ void createCommit(char **ign, int i_size) {
 		d = mkdir(full_cpath, S_IRWXU);
 	}
 
+	FILE *hd = fopen(".rep/HEAD", "w");
+	fprintf(hd, "%s", cid);
+	fclose(hd);
 			
 	printf("Creating commit %s...\n", cid);
 	
@@ -192,35 +248,66 @@ void createCommit(char **ign, int i_size) {
 				getBaseFile(full, &b);	
 				//printf("error here\n");
 				// if base isn't most recent
-				//getMostRecent();
+				if(is_base == false) {
+					char *latest = getMostRecent(&b, file_list->d_name, cid);
+					//printf("%s\n", latest);
+					// 2. get modified
+			
+					file_list->d_name[strlen(file_list->d_name)-4] = '\0';
+					baseobject mod;
+			
+					//printf("%s\n", file_list->d_name);
+					getBaseFile(file_list->d_name, &mod);
+
+					
+					//printf("error\n");
+					findDiff(latest, mod.data, &head);
+			
+					char *ext = ".chg";
+					commitfile = (char*)realloc(commitfile, sizeof(char)*(strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+4));
+					//char commitfile[strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+2];
+
+					strcat(commitfile, full_cpath);
+					strcat(commitfile, "/");
+					strcat(commitfile, file_list->d_name);
+					strcat(commitfile, ext);
+					//printf("%s\n", commitfile);
 				
+					//printf("error\n");
+					writeCommitFile(&head, commitfile);		
+					// only this works for clearing commitfile
+					commitfile[0] = '\0';
+				} else {
 
-				// 2. get modified
-			
-				file_list->d_name[strlen(file_list->d_name)-4] = '\0';
-				//printf("%s\n", file_list->d_name);
-				baseobject mod;
-			
-				getBaseFile(file_list->d_name, &mod);
-				//printf("%s\n", mod.data);
 
+					// 2. get modified
 			
-				findDiff(b.data, mod.data, &head);
+					file_list->d_name[strlen(file_list->d_name)-4] = '\0';
+					//printf("%s\n", file_list->d_name);
+					baseobject mod;
 			
-				char *ext = ".chg";
-				commitfile = (char*)realloc(commitfile, sizeof(char)*(strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+4));
-				//char commitfile[strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+2];
+					//printf("%s\n", file_list->d_name);
+					getBaseFile(file_list->d_name, &mod);
+					//printf("error\n");
 
-				strcat(commitfile, full_cpath);
-				strcat(commitfile, "/");
-				strcat(commitfile, file_list->d_name);
-				strcat(commitfile, ext);
-				//commitfile[strlen(commitfile)-1] = '\0';
-				//printf("%s\n", commitfile);
+					
+					findDiff(b.data, mod.data, &head);
 			
-				writeCommitFile(&head, commitfile);		
-				// only this works for clearing commitfile
-				commitfile[0] = '\0';
+					char *ext = ".chg";
+					commitfile = (char*)realloc(commitfile, sizeof(char)*(strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+4));
+					//char commitfile[strlen(full_cpath)+strlen(file_list->d_name)+strlen(ext)+2];
+
+					strcat(commitfile, full_cpath);
+					strcat(commitfile, "/");
+					strcat(commitfile, file_list->d_name);
+					strcat(commitfile, ext);
+					//commitfile[strlen(commitfile)-1] = '\0';
+					//printf("%s\n", commitfile);
+				
+					writeCommitFile(&head, commitfile);		
+					// only this works for clearing commitfile
+					commitfile[0] = '\0';
+				}
 			}	
 		}
 		file_list = readdir(dirobj);
@@ -232,46 +319,10 @@ void createCommit(char **ign, int i_size) {
 }
 
 
-
-/*
-directly apply to base, or build linked list?
-*/
-void readCommitFile(char *filename, baseobject *bo) {
-	FILE *rtest = fopen(filename, "r");
-	bo->pos = 0;
-	// for reading, dont initialize as pointer
-	//strobject re;
-	char re;
-	int num_spaces;
-	char c;
-	// loop exit triggered by ending hex character 
-	while(1) {
-		fread(&c, sizeof(char), 1, rtest);
-		if(c == STR_IND) {
-			fread(&re, sizeof(char), 1, rtest);
-			//printf("%c\n", re.data);
-			bo->data[bo->pos] = re;
-			bo->pos+=1;
-		} else if(c == SPACE_IND) {
-			fread(&num_spaces, sizeof(int), 1, rtest);
-			//printf("%d\n", num_spaces);
-			bo->pos += num_spaces;
-			num_spaces = 0;
-		} else if(c == END_FILE) {
-			break;
-		}
-		
-	}	
-	
-	fclose(rtest);
-	printf("%s\n", bo->data);
-
-}
-
 void copyFile(char *filename) {
 	// create new filename
 	char *ext = ".bas";
-	char *base_copy = (char*)malloc(sizeof(char)*strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1);
+	char *base_copy = (char*)malloc(sizeof(char)*(strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1));
 
 	strcpy(base_copy, BASE_DIR);
 	strcat(base_copy, filename);
@@ -298,7 +349,6 @@ void copyFile(char *filename) {
 	fclose(b);
 
 	//free(src);
-	//free(base_copy);
 	
 }
 

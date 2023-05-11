@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
 	if(argc == 3) {
 		if(strcmp("init", argv[1]) == 0) {
 			initRepository(argv[2]);
+			// make a first commit after starting repo
 			exit(0);
 		}
 	} else if(argc == 2) {

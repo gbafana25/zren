@@ -17,10 +17,10 @@ version control system
 	- (loop through `DIR` object instead?) file w/ list of commit hashes/identifiers
 	- [x] each commit identifier will be a directory inside `commits`
 	- [x] `base` directory will have files from first commit
-	- have `.gitignore`-like file
+	- [x] have `.gitignore`-like file
 		- identifiers: f - file, ext - extension
 
 ## TODO
 - make new commits by comparing prev. commit (current function gives persistent malloc error when enabled)
 - if there's a malloc error, `make clean` and compile again
-	- figure out why `getMostRecent()` crashes w/ `baseobject` argument (pass string instead?)
+- figure out why modified file of different length than original causes malloc failure
