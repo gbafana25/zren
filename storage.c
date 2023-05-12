@@ -56,7 +56,7 @@ void readCommitFile(char *filename, baseobject *bo) {
 	}	
 	
 	fclose(rtest);
-	bo->data[strlen(bo->data)-1] = '\0';
+	//bo->data[strlen(bo->data)-1] = '\0';
 
 }
 
@@ -101,13 +101,10 @@ void getBaseFile(char *filename, baseobject *base) {
 	size_t s = ftell(f);
 	rewind(f);
 
-
-	char *src = (char*)malloc(sizeof(char)*(s+1));
+	char src[s+1];
 	fread(src, sizeof(char), s, f);
-	src[strlen(src)-1] = '\0';
 	initBaseObject(base, src);
 	fclose(f);
-	free(src);
 }
 
 char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit) {	
@@ -233,7 +230,6 @@ void createCommit(char **ign, int i_size) {
 				strcat(full, BASE_DIR);
 				strcat(full, file_list->d_name);
 				//full[strlen(full)-1] = '\0';
-				//printf("%s\n", full);
 
 				// 1. TODO: Get base (or most recent)
 				baseobject b;	
@@ -242,19 +238,13 @@ void createCommit(char **ign, int i_size) {
 				if(is_base == false) {
 					// crashes when modified text is shorter than previous
 					char *latest = getMostRecent(&b, file_list->d_name, cid);
-					//printf("error\n");
-					//printf("%s\n", latest);
 					// 2. get modified
 			
 					file_list->d_name[strlen(file_list->d_name)-4] = '\0';
 					baseobject mod;
 			
-					//printf("%s\n", file_list->d_name);
-					//printf("%s\n", file_list->d_name);
 					getBaseFile(file_list->d_name, &mod);
 
-					
-					//printf("error\n");
 					findDiff(latest, mod.data, &head);
 			
 					char *ext = ".chg";
