@@ -5,7 +5,7 @@ version control system
 
 - changefile format: record all characters that are different, record space between each different character
 	- if a change is made in the middle of the file, it will make the diff file really big. However, if data is just appended or not added at all, then the file will be very small
-	- linked list: one node for amount of space, pointer to node w/ different characters 
+	- store each character/space in a linked list
 	- hex code/character to separate space and char nodes when written to file
 	- put each character/space different in struct, don't group characters/spaces until writing final commit file
 
@@ -24,8 +24,13 @@ version control system
 - if there's a malloc error, `make clean` and compile again
 
 ## TODO
-- make help menu
+- make output better
 - add function to move `HEAD` back to specified commit
 	- similar to get revert, compare whatever user types
 - figure out why malloc still returns an error sometimes
-- prevent unchanged files from writing same changefile in next commit
+- add ability to create multiple branches
+- allow for commit messages
+- recursively track files in inner directories
+- allow new files to be tracked even after repository is created
+	- make list of all files that get committed
+	- each commit, compare list of recorded files w/ ones in directory, if new then add to base

@@ -6,6 +6,7 @@
 #include "track.h"
 #include "storage.h" 
 #include "ignore.h"
+#include "menu.h"
 
 int main(int argc, char **argv) { 
 
@@ -24,20 +25,16 @@ int main(int argc, char **argv) {
 			int s = 0;
 			char **ign = parseIgnoreFile(data, &s);
 			createCommit(ign, s);
-			exit(0);
-		} else if(strcmp("ig", argv[1]) == 0) {
-			char *data = openIgnoreFile();
-			int s = 0;
-			char **ign = parseIgnoreFile(data, &s);		
-			
-			exit(0);
+			exit(0); 
 		} else {
-			printf("Wrong command - use init [dir] or commit\n");
+			//printf("Wrong command - use init [dir] or commit\n");
+			printHelpMenu();
 			exit(0);
 
 		}
 	} else {
-		printf("Wrong command - use init [dir] or commit\n");
+		//printf("Wrong command - use init [dir] or commit\n");
+		printHelpMenu();
 		exit(0);
 	}
 	
