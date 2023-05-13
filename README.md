@@ -24,13 +24,12 @@ version control system
 - if there's a malloc error, `make clean` and compile again
 
 ## TODO
-- make output better
 - add function to move `HEAD` back to specified commit
 	- similar to get revert, compare whatever user types
-- figure out why malloc still returns an error sometimes
+- handle deleted files
+- make `initRepository` comply with ignorefile
+- figure out why malloc still returns an error sometimes (if it happens again)
 - add ability to create multiple branches
-- allow for commit messages
 - recursively track files in inner directories
-- allow new files to be tracked even after repository is created
-	- make list of all files that get committed
-	- each commit, compare list of recorded files w/ ones in directory, if new then add to base
+- create git-like staging area
+

@@ -14,26 +14,24 @@ int main(int argc, char **argv) {
 	baseobject mod;
 	
 	if(argc == 3) {
-		if(strcmp("init", argv[1]) == 0) {
+		if(strcmp("init", argv[1]) == 0) {	
 			initRepository(argv[2]);
-			// make a first commit after starting repo
 			exit(0);
-		}
-	} else if(argc == 2) {
-		if(strcmp("commit", argv[1]) == 0) {
+		} else if(strcmp("commit", argv[1]) == 0) {
 			char *data = openIgnoreFile();
 			int s = 0;
 			char **ign = parseIgnoreFile(data, &s);
-			createCommit(ign, s);
+			createCommit(ign, s, argv[2]);
 			exit(0); 
+		} else if(strcmp("add", argv[1]) == 0) {
+			addFile(argv[2]);
+			exit(0);
 		} else {
-			//printf("Wrong command - use init [dir] or commit\n");
 			printHelpMenu();
 			exit(0);
 
 		}
 	} else {
-		//printf("Wrong command - use init [dir] or commit\n");
 		printHelpMenu();
 		exit(0);
 	}

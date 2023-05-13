@@ -12,6 +12,8 @@
 #define REPO_DIR ".rep"
 #define BASE_DIR ".rep/base/"
 #define COMM_DIR ".rep/commits/"
+#define FILE_REG ".rep/FILES"
+#define DIR_FILE ".rep/PROJECT_DIR"
 #define ID_LEN 25
 
 void genCommitId(char *id) {
@@ -25,38 +27,110 @@ void genCommitId(char *id) {
 
 }
 
+void addCommitMessage(char *msg, char *commit_id) {
+	//printf("%s\n", msg);
+	char *fname = "MSG";
+	char path[strlen(COMM_DIR)+strlen(commit_id)+strlen(fname)+2];
+	memset(&path, 0, sizeof(path));
+	strcat(path, COMM_DIR);
+	strcat(path, commit_id);
+	strcat(path, "/");
+	strcat(path, fname);
+	path[strlen(path)] = '\0';
+	
+	//printf("%s\n", path);
+	FILE *m = fopen(path, "w+");
+	fprintf(m, "%s", msg);
+	fclose(m);
+
+}
+
+char *getProjectDir() {
+		
+	FILE *d = fopen(DIR_FILE, "r");
+	fseek(d, 0L, SEEK_END);
+	size_t s = ftell(d);
+	rewind(d);
+	//char dir[s+1];
+	char *dir = (char*)malloc(sizeof(char)*(s+1));
+	//fread(dir, sizeof(char), s, d);
+	fscanf(d, "%s", dir);
+
+	fclose(d);
+	return dir;
+}
+
+void setProjectDir(char *dirname) {
+	/*
+	char projdir[256];
+	getcwd(projdir, 256);
+	*/
+	FILE *d = fopen(DIR_FILE, "w+");
+	fprintf(d, "%s", dirname);
+	fclose(d);
+}
+
+void createFileRegistry(char *repo_dir) {
+	DIR *dirobj = opendir(repo_dir);	
+	struct dirent *file_list = readdir(dirobj);	
+
+	FILE *reg = fopen(FILE_REG, "w+");
+	
+	while(file_list != NULL) {
+		fprintf(reg, "%s\n", file_list->d_name);
+		file_list = readdir(dirobj);
+	}
+
+	fclose(reg);
+		
+}
+
+// add any new files to base (before commit)
+void addFile(char *name) {
+	FILE *reg = fopen(FILE_REG, "a");
+	
+	fprintf(reg, "%s\n", name);
+	fclose(reg);
+	copyFile(name);
+	
+	
+}
+
 void readCommitFile(char *filename, baseobject *bo) {
 	FILE *rtest = fopen(filename, "r");
-	fseek(rtest, 0L, SEEK_END);
-	size_t s = ftell(rtest);
-	rewind(rtest);
+	if(rtest != NULL) {
 
-	if(s != strlen(bo->data)) {
-		bo->data = (char*)realloc(bo->data, sizeof(char)*(strlen(bo->data)+s+1));
-	}
-	bo->pos = 0;
-	char re;
-	int num_spaces;
-	char c;
-	// loop exit triggered by ending hex character 
-	while(1) {
-		fread(&c, sizeof(char), 1, rtest);
-		if(c == STR_IND) {
-			fread(&re, sizeof(char), 1, rtest);
-			bo->data[bo->pos] = re;
-			bo->pos+=1;
-		} else if(c == SPACE_IND) {
-			fread(&num_spaces, sizeof(int), 1, rtest);
-			bo->pos += num_spaces;
-			num_spaces = 0;
-		} else if(c == END_FILE) {
-			break;
+		fseek(rtest, 0L, SEEK_END);
+		size_t s = ftell(rtest);
+		rewind(rtest);
+
+		if(s != strlen(bo->data)) {
+			bo->data = (char*)realloc(bo->data, sizeof(char)*(strlen(bo->data)+s+1));
 		}
+		bo->pos = 0;
+		char re;
+		int num_spaces;
+		char c;
+		// loop exit triggered by ending hex character 
+		while(1) {
+			fread(&c, sizeof(char), 1, rtest);
+			if(c == STR_IND) {
+				fread(&re, sizeof(char), 1, rtest);
+				bo->data[bo->pos] = re;
+				bo->pos+=1;
+			} else if(c == SPACE_IND) {
+				fread(&num_spaces, sizeof(int), 1, rtest);
+				bo->pos += num_spaces;
+				num_spaces = 0;
+			} else if(c == END_FILE) {
+				break;
+			}
 		
-	}	
+		}	
 	
-	fclose(rtest);
-	//bo->data[strlen(bo->data)-1] = '\0';
+		fclose(rtest);
+		//bo->data[strlen(bo->data)-1] = '\0';
+	}
 
 }
 
@@ -143,7 +217,7 @@ char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit) {
 	return bo->data;
 }
 
-void createCommit(char **ign, int i_size) {
+void createCommit(char **ign, int i_size, char *commit_msg) {
 	char cid[ID_LEN+1];
 	char full_cpath[strlen(COMM_DIR)+ID_LEN+1];
 	char *commitfile = (char*)malloc(sizeof(char)*4);
@@ -186,8 +260,10 @@ void createCommit(char **ign, int i_size) {
 	fprintf(hd, "%s", cid);
 	fclose(hd);
 			
-	printf("Creating commit %s...\n", cid);
-	
+	printf("Creating commit %s: %s...\n", cid, commit_msg);
+	addCommitMessage(commit_msg, cid);
+	char *scandir = getProjectDir();	
+	//printf("%s\n", scandir);
 		
 	DIR *dirobj = opendir(BASE_DIR);	
 	struct dirent *file_list = readdir(dirobj);
@@ -208,13 +284,13 @@ void createCommit(char **ign, int i_size) {
 					int offset = strlen(file_list->d_name)-strlen(ign[i])-3;
 
 					if(strncmp(file_list->d_name+offset, ign[i]+1, strlen(ign[i])-1) == 0) {
-						printf("ignoring %s...\n", ign[i]);
+						printf("ignoring %s (Rule: ignore %s)...\n", file_list->d_name, ign[i]);
 						printf("\n");
 						end = true;
 
 					}
 				} else if(strncmp(file_list->d_name, ign[i], strlen(file_list->d_name)-4) == 0) {
-					printf("ignoring %s...\n", ign[i]);
+					printf("ignoring %s (Rule: ignore %s)...\n", file_list->d_name, ign[i]);
 					printf("\n");
 					end = true;
 				}
@@ -231,12 +307,12 @@ void createCommit(char **ign, int i_size) {
 				strcat(full, file_list->d_name);
 				//full[strlen(full)-1] = '\0';
 
-				// 1. TODO: Get base (or most recent)
+				// 1. Get base (or most recent)
 				baseobject b;	
 				getBaseFile(full, &b);	
 				// if base isn't most recent
 				if(is_base == false) {
-					// crashes when modified text is shorter than previous
+					createFileRegistry(scandir);
 					char *latest = getMostRecent(&b, file_list->d_name, cid);
 					// 2. get modified
 			
@@ -256,6 +332,7 @@ void createCommit(char **ign, int i_size) {
 					strcat(commitfile, ext);
 				
 					
+					printf("Applying changes to %s\n", file_list->d_name);
 					writeCommitFile(&head, commitfile);		
 					// only this works for clearing commitfile
 					commitfile[0] = '\0';
@@ -281,6 +358,7 @@ void createCommit(char **ign, int i_size) {
 					strcat(commitfile, ext);
 					//commitfile[strlen(commitfile)-1] = '\0';
 				
+					printf("Applying %s\n", file_list->d_name);
 					writeCommitFile(&head, commitfile);		
 					// only this works for clearing commitfile
 					commitfile[0] = '\0';
@@ -311,7 +389,7 @@ void copyFile(char *filename) {
 	size_t s = ftell(f);
 	rewind(f);
 
-	printf("%s: %d\n", base_copy, s);
+	printf("Copying: %s | Size: %d\n", filename, s);
 	
 	char src[s+1];
 	fread(src, sizeof(char), s, f);
@@ -341,10 +419,13 @@ void initRepository(char *dirname) {
 		FILE *head = fopen(".rep/HEAD", "w+");
 		fprintf(head, "%s", "BASE");
 		fclose(head);
+		createFileRegistry(dirname);
+		setProjectDir(dirname);
 	}
 	while(file_list != NULL) {	
 		// only track files in dir base for now
 		if(file_list->d_type == DT_REG) {
+			// do intial scan for files, put name into FILES
 			// copy over file (w/ different extension
 			copyFile(file_list->d_name);
 		}
