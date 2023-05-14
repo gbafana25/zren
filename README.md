@@ -24,9 +24,6 @@ version control system
 - if there's a malloc error, `make clean` and compile again
 
 ## TODO
-- add function to move `HEAD` back to specified commit <-
-	- similar to get revert, compare whatever user types
-	- record when specified commit was done, then delete all commits done after
 - recursively track files in inner directories
 - create git-like staging area
 - figure out why malloc still returns an error sometimes (if it happens again)

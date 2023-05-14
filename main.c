@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 #include "track.h"
 #include "storage.h" 
 #include "ignore.h"
@@ -30,7 +29,6 @@ int main(int argc, char **argv) {
 			addFile(argv[2]);
 			exit(0);
 		} else if(strcmp("revert", argv[1]) == 0) {
-			//addCommitIdentifier(argv[2]);	
 			revertToCommit(argv[2]);
 			exit(0);
 		} else {

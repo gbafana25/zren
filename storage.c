@@ -98,19 +98,143 @@ void revertToCommit(char *cid) {
 	DIR *dirobj = opendir(COMM_DIR);	
 	struct dirent *commits = readdir(dirobj);
 
+	int *cr_date;
+	char *full_commit;
+	char *second_full;
 	while(commits != NULL) {
 		if(strncmp(cid, commits->d_name, strlen(cid)) == 0) {
 			printf("reverting to commit %s...\n", commits->d_name);	
 			FILE *head = fopen(".rep/HEAD", "w+");
 			fprintf(head, "%s", commits->d_name);
 			fclose(head);
-			//int *cr_date = getTimeStamp(commits->d_name);
+			cr_date = getTimeStamp(commits->d_name);
 
-			//printf("%d %d %d, %d %d %d\n", cr_date[0], cr_date[1], cr_date[2], cr_date[3], cr_date[4], cr_date[5]);
-			return;
+			printf("%d %d %d, %d %d %d\n", cr_date[0], cr_date[1], cr_date[2], cr_date[3], cr_date[4], cr_date[5]);
+			full_commit = (char*)malloc(sizeof(char)*(strlen(commits->d_name)+1));
+			strcpy(full_commit, commits->d_name);
+			
+			break;
 		}
 		commits = readdir(dirobj);
 	}
+	closedir(dirobj);
+	// do another pass over directory to delete folders
+	
+	DIR *second = opendir(COMM_DIR);
+	struct dirent *scnd = readdir(second);
+	while(scnd != NULL) {
+		second_full = (char*)malloc(sizeof(char)*(strlen(COMM_DIR)+strlen(scnd->d_name)+1));
+		strcpy(second_full, COMM_DIR);
+		strcat(second_full, scnd->d_name);
+		if(strcmp(full_commit, scnd->d_name) != 0 && strcmp(scnd->d_name, ".") != 0 && strcmp(scnd->d_name, "..") != 0) {
+			int *this_date = getTimeStamp(scnd->d_name);
+			printf("%d %d %d, %d %d %d\n", this_date[0], this_date[1], this_date[2], this_date[3], this_date[4], this_date[5]);
+
+			//printf("%s\n", second_full);
+			if(cr_date[2] < this_date[2]) {
+				DIR *sf = opendir(second_full);	
+				struct dirent *old = readdir(sf);
+				while(old != NULL) {
+					if(old->d_type == DT_REG) {
+						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
+						strcpy(d, second_full);
+						strcat(d, "/");
+						strcat(d, old->d_name);
+						unlink(old->d_name);
+						free(d);
+					}
+					old = readdir(sf);
+				}	
+				rmdir(second_full);
+				return;
+			} else if(cr_date[1] < this_date[1]) {
+				DIR *sf = opendir(second_full);	
+				struct dirent *old = readdir(sf);
+				while(old != NULL) {
+					if(old->d_type == DT_REG) {
+						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
+						strcpy(d, second_full);
+						strcat(d, "/");
+						strcat(d, old->d_name);
+						unlink(old->d_name);
+						free(d);
+					}
+					old = readdir(sf);
+				}
+				rmdir(second_full);
+				return;
+			} else if(cr_date[0] < this_date[0]) {
+				DIR *sf = opendir(second_full);	
+				struct dirent *old = readdir(sf);
+				while(old != NULL) {
+					if(old->d_type == DT_REG) {
+						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
+						strcpy(d, second_full);
+						strcat(d, "/");
+						strcat(d, old->d_name);
+						unlink(old->d_name);
+						free(d);
+					}
+					old = readdir(sf);
+				}
+				rmdir(second_full);
+				return;
+			} else if(cr_date[3] < this_date[3]) {
+				DIR *sf = opendir(second_full);	
+				struct dirent *old = readdir(sf);
+				while(old != NULL) {
+					if(old->d_type == DT_REG) {
+						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
+						strcpy(d, second_full);
+						strcat(d, "/");
+						strcat(d, old->d_name);
+						unlink(old->d_name);
+						free(d);
+					}
+					old = readdir(sf);
+				}
+				rmdir(second_full);
+				return;
+			} else if(cr_date[4] < this_date[4]) {
+				DIR *sf = opendir(second_full);	
+				struct dirent *old = readdir(sf);
+				while(old != NULL) {
+					if(old->d_type == DT_REG) {
+						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
+						strcpy(d, second_full);
+						strcat(d, "/");
+						strcat(d, old->d_name);
+						unlink(old->d_name);
+						free(d);
+					}
+					old = readdir(sf);
+				}
+				rmdir(second_full);
+				return;
+			} else if(cr_date[5] < this_date[5]) {
+				DIR *sf = opendir(second_full);	
+				struct dirent *old = readdir(sf);
+				
+				while(old != NULL) {
+					if(old->d_type == DT_REG) {
+						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
+						strcpy(d, second_full);
+						strcat(d, "/");
+						strcat(d, old->d_name);
+						unlink(d);
+						free(d);
+					}
+					old = readdir(sf);
+				}
+				rmdir(second_full);
+				return;
+			}
+		}
+		scnd = readdir(second);
+		memset(&second_full, 0, sizeof(second_full));
+	}
+	closedir(second);
+
 	printf("Error: could not find commit starting with %s...\n", cid);
 }
 
