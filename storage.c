@@ -135,7 +135,10 @@ void readCommitFile(char *filename, baseobject *bo) {
 }
 
 // return success/failure code?
-void writeCommitFile(strobject *head, char *filename) {
+void writeCommitFile(strobject *head, char *filename, int res) {
+	if(res == -1) {
+		return;
+	}
 	// skip the head node
 	strobject *n = head->next;
 
@@ -169,8 +172,12 @@ void writeCommitFile(strobject *head, char *filename) {
 	fclose(commit);
 }
 
-void getBaseFile(char *filename, baseobject *base) {
+int getBaseFile(char *filename, baseobject *base) {
 	FILE *f = fopen(filename, "r");
+	if(f == NULL) {
+		printf("%s not found, skipping..\n", filename);
+		return -1;
+	}
 	fseek(f, 0L, SEEK_END);
 	size_t s = ftell(f);
 	rewind(f);
@@ -179,6 +186,7 @@ void getBaseFile(char *filename, baseobject *base) {
 	fread(src, sizeof(char), s, f);
 	initBaseObject(base, src);
 	fclose(f);
+	return 0;
 }
 
 char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit) {	
@@ -319,7 +327,7 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 					file_list->d_name[strlen(file_list->d_name)-4] = '\0';
 					baseobject mod;
 			
-					getBaseFile(file_list->d_name, &mod);
+					int r = getBaseFile(file_list->d_name, &mod);
 
 					findDiff(latest, mod.data, &head);
 			
@@ -333,7 +341,7 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 				
 					
 					printf("Applying changes to %s\n", file_list->d_name);
-					writeCommitFile(&head, commitfile);		
+					writeCommitFile(&head, commitfile, r);		
 					// only this works for clearing commitfile
 					commitfile[0] = '\0';
 				} else {
@@ -344,7 +352,7 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 					file_list->d_name[strlen(file_list->d_name)-4] = '\0';
 					baseobject mod;
 			
-					getBaseFile(file_list->d_name, &mod);
+					int r = getBaseFile(file_list->d_name, &mod);
 
 					
 					findDiff(b.data, mod.data, &head);
@@ -359,7 +367,7 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 					//commitfile[strlen(commitfile)-1] = '\0';
 				
 					printf("Applying %s\n", file_list->d_name);
-					writeCommitFile(&head, commitfile);		
+					writeCommitFile(&head, commitfile, r);		
 					// only this works for clearing commitfile
 					commitfile[0] = '\0';
 				}
@@ -385,6 +393,10 @@ void copyFile(char *filename) {
 
 	// load original file
 	FILE *f = fopen(filename, "r");
+	if(f == NULL) {
+		printf("%s not found, skipping..\n", filename);
+		return;
+	}
 	fseek(f, 0L, SEEK_END);
 	size_t s = ftell(f);
 	rewind(f);
