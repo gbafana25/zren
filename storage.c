@@ -416,7 +416,7 @@ void copyFile(char *filename) {
 	
 }
 
-void initRepository(char *dirname) {
+void initRepository(char *dirname, char **ign, int i_size) {
 	DIR *dirobj = opendir(dirname);	
 	struct dirent *file_list = readdir(dirobj);
 	int d = mkdir(REPO_DIR, S_IRWXU);
@@ -439,7 +439,24 @@ void initRepository(char *dirname) {
 		if(file_list->d_type == DT_REG) {
 			// do intial scan for files, put name into FILES
 			// copy over file (w/ different extension
-			copyFile(file_list->d_name);
+			bool copy = true;	
+			for(int i = 0; i < i_size; i++) {
+				//printf("%s: %s\n", file_list->d_name, ign[i]);
+				int offset = strlen(file_list->d_name)-(strlen(ign[i])-1);
+				
+				if(ign[i][0] == '*') {
+					if(strncmp(file_list->d_name+offset, ign[i]+1, strlen(ign[i])-1) == 0) {	
+						copy = false;
+						break;
+					}
+				} else if(strcmp(file_list->d_name, ign[i]) == 0) {
+					copy = false;	
+					break;
+				}
+			}
+			if(copy) {
+				copyFile(file_list->d_name);
+			}
 		}
 		file_list = readdir(dirobj);
 	}

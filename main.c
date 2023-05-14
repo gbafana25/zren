@@ -15,7 +15,10 @@ int main(int argc, char **argv) {
 	
 	if(argc == 3) {
 		if(strcmp("init", argv[1]) == 0) {	
-			initRepository(argv[2]);
+			char *data = openIgnoreFile();
+			int s = 0;
+			char **ign = parseIgnoreFile(data, &s);
+			initRepository(argv[2], ign, s);
 			exit(0);
 		} else if(strcmp("commit", argv[1]) == 0) {
 			char *data = openIgnoreFile();

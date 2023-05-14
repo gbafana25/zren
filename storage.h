@@ -7,7 +7,7 @@ void writeCommitFile(strobject *head, char *filename, int res);
 // read and apply commit to base
 void readCommitFile(char *filename, baseobject *bo);
 // scan directory for files and get base ("1st") commit
-void initRepository();
+void initRepository(char *dirname, char **ign, int i_size);
 void copyFile(char *filename); 
 void genCommitId(char *id);
 void createCommit(char **ign, int isize, char *commit_msg);

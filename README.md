@@ -26,8 +26,7 @@ version control system
 ## TODO
 - add function to move `HEAD` back to specified commit
 	- similar to get revert, compare whatever user types
-- make `initRepository` comply with ignorefile <-
-- figure out why malloc still returns an error sometimes (if it happens again)
 - recursively track files in inner directories
 - create git-like staging area
+- figure out why malloc still returns an error sometimes (if it happens again)
 
