@@ -1,6 +1,7 @@
 #ifndef STORAGE_H
 #define STORAGE_H
 
+#include <time.h>
 #include "track.h"
 
 void writeCommitFile(strobject *head, char *filename, int res);
@@ -15,5 +16,6 @@ int getBaseFile(char *filename, baseobject *b);
 void getMostRecent(baseobject *bo);
 void addCommitMessage(char *msg, char *commit_id);
 void addFile(char *name);
+void revertToCommit(char *cid);
 
 #endif

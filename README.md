@@ -18,14 +18,15 @@ version control system
 	- [x] each commit identifier will be a directory inside `commits`
 	- [x] `base` directory will have files from first commit
 	- [x] have `.gitignore`-like file
-	- [ ] file with all commit identifiers?
+	- [ ] file with all commit identifiers? <-
 
 ## Dev. notes
 - if there's a malloc error, `make clean` and compile again
 
 ## TODO
-- add function to move `HEAD` back to specified commit
+- add function to move `HEAD` back to specified commit <-
 	- similar to get revert, compare whatever user types
+	- record when specified commit was done, then delete all commits done after
 - recursively track files in inner directories
 - create git-like staging area
 - figure out why malloc still returns an error sometimes (if it happens again)

@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <string.h>
+#include <time.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -14,6 +15,8 @@
 #define COMM_DIR ".rep/commits/"
 #define FILE_REG ".rep/FILES"
 #define DIR_FILE ".rep/PROJECT_DIR"
+#define IDENT_FILE ".rep/COMMIT_IDENTS"
+#define TIMESTAMP "TIMESTAMP"
 #define ID_LEN 25
 
 void genCommitId(char *id) {
@@ -43,6 +46,72 @@ void addCommitMessage(char *msg, char *commit_id) {
 	fprintf(m, "%s", msg);
 	fclose(m);
 
+}
+
+int *getTimeStamp(char *cid) {
+	char *full = (char*)malloc(sizeof(char)*ID_LEN+(strlen(COMM_DIR)+strlen(TIMESTAMP)+2));
+	//memset(&full, 0, sizeof(full));
+	full[0] = '\0';
+	
+	strcat(full, COMM_DIR);
+	strcat(full, cid);
+	strcat(full, "/");
+	strcat(full, TIMESTAMP);
+	full[strlen(full)] = '\0';
+
+	//printf("%s\n", full);
+	FILE *tfile = fopen(full, "r");
+
+	int *cr_date = (int*)malloc(sizeof(int)*6);
+	//int cr_date[6];
+	
+	fscanf(tfile, "%d-%d-%d %d-%d-%d", &cr_date[0], &cr_date[1], &cr_date[2], &cr_date[3], &cr_date[4], &cr_date[5]);
+	//printf("%d %d %d, %d %d %d\n", cr_date[0], cr_date[1], cr_date[2], cr_date[3], cr_date[4], cr_date[5]);
+	
+	
+	fclose(tfile);
+	return cr_date;
+}
+
+void addTimeStamp(char *cid) {	
+	char *full = (char*)malloc(sizeof(char)*ID_LEN+(strlen(COMM_DIR)+strlen(TIMESTAMP)+2));
+	
+	strcat(full, COMM_DIR);
+	strcat(full, cid);
+	strcat(full, "/");
+	strcat(full, TIMESTAMP);
+	full[strlen(full)] = '\0';
+
+	time_t t = time(NULL);
+	struct tm *curr_time;
+	curr_time = localtime(&t);
+
+	FILE *tfile = fopen(full, "w+");
+	// day-month-year hour-minute-second
+	fprintf(tfile, "%d-%d-%d %d-%d-%d", curr_time->tm_mday,  curr_time->tm_mon, curr_time->tm_year+1900, curr_time->tm_hour, curr_time->tm_min, curr_time->tm_sec);
+	fclose(tfile);
+	
+	free(full);
+}
+
+void revertToCommit(char *cid) {
+	DIR *dirobj = opendir(COMM_DIR);	
+	struct dirent *commits = readdir(dirobj);
+
+	while(commits != NULL) {
+		if(strncmp(cid, commits->d_name, strlen(cid)) == 0) {
+			printf("reverting to commit %s...\n", commits->d_name);	
+			FILE *head = fopen(".rep/HEAD", "w+");
+			fprintf(head, "%s", commits->d_name);
+			fclose(head);
+			//int *cr_date = getTimeStamp(commits->d_name);
+
+			//printf("%d %d %d, %d %d %d\n", cr_date[0], cr_date[1], cr_date[2], cr_date[3], cr_date[4], cr_date[5]);
+			return;
+		}
+		commits = readdir(dirobj);
+	}
+	printf("Error: could not find commit starting with %s...\n", cid);
 }
 
 char *getProjectDir() {
@@ -275,7 +344,7 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 		
 	DIR *dirobj = opendir(BASE_DIR);	
 	struct dirent *file_list = readdir(dirobj);
-	
+	addTimeStamp(cid);	
 
 	while(file_list != NULL) {	
 		// only track files in dir base for now

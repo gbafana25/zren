@@ -29,7 +29,12 @@ int main(int argc, char **argv) {
 		} else if(strcmp("add", argv[1]) == 0) {
 			addFile(argv[2]);
 			exit(0);
+		} else if(strcmp("revert", argv[1]) == 0) {
+			//addCommitIdentifier(argv[2]);	
+			revertToCommit(argv[2]);
+			exit(0);
 		} else {
+			
 			printHelpMenu();
 			exit(0);
 
