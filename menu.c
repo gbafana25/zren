@@ -3,10 +3,12 @@
 #include "menu.h"
 
 void printHelpMenu() {
-	printf("myvcs help menu\n\n");
+	printf("zren help menu\n\n");
 	printf("Available commands:\n\n");
 	printf("init [directory] - initialize a new repository in the specified directory\n");
 	printf("commit [message] - save current changes\n");
 	printf("add [filename] - add file to be tracked\n");
+	printf("rollback [commit_id] - set head to given commit");
+	printf("revert [commit_id] - hard reset back to given commit, deletes data from commits made afterwards\n\n");
 
 }

@@ -94,6 +94,22 @@ void addTimeStamp(char *cid) {
 	free(full);
 }
 
+void rollbackToCommit(char *cid) {
+	DIR *dirobj = opendir(COMM_DIR);	
+	struct dirent *commits = readdir(dirobj);
+	while(commits != NULL) {
+		if(strncmp(cid, commits->d_name, strlen(cid)) == 0) {
+			printf("rolling back to commit %s...\n", commits->d_name);	
+			FILE *head = fopen(".rep/HEAD", "w+");
+			fprintf(head, "%s", commits->d_name);
+			fclose(head);
+		}
+		commits = readdir(dirobj);
+	}
+
+	closedir(dirobj);
+}
+
 void revertToCommit(char *cid) {
 	DIR *dirobj = opendir(COMM_DIR);	
 	struct dirent *commits = readdir(dirobj);
