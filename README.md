@@ -18,13 +18,13 @@ version control system
 	- [x] each commit identifier will be a directory inside `commits`
 	- [x] `base` directory will have files from first commit
 	- [x] have `.gitignore`-like file
-	- [ ] file with all commit identifiers? <-
+	- [x] config/log file for commit id, message, and timestamp
 
 ## Dev. notes
 - if there's a malloc error, `make clean` and compile again
 
 ## TODO
-- add log file (JSON format?)
+- make rollback use new log file
 - recursively track files in inner directories
 - create git-like staging area
 - figure out why malloc still returns an error sometimes (if it happens again)

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
@@ -9,7 +10,9 @@
 #include <time.h>
 
 #include "track.h"
+#include "log.h"
 
+#define LOGFILE ".rep/LOG"
 #define REPO_DIR ".rep"
 #define BASE_DIR ".rep/base/"
 #define COMM_DIR ".rep/commits/"
@@ -18,6 +21,41 @@
 #define IDENT_FILE ".rep/COMMIT_IDENTS"
 #define TIMESTAMP "TIMESTAMP"
 #define ID_LEN 25
+
+
+void copyFile(char *filename) {
+	// create new filename
+	char *ext = ".bas";
+	char *base_copy = (char*)malloc(sizeof(char)*(strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1));
+
+	strcpy(base_copy, BASE_DIR);
+	strcat(base_copy, filename);
+	strcat(base_copy, ext);
+
+	// load original file
+	FILE *f = fopen(filename, "r");
+	if(f == NULL) {
+		printf("%s not found, skipping..\n", filename);
+		return;
+	}
+	fseek(f, 0L, SEEK_END);
+	size_t s = ftell(f);
+	rewind(f);
+
+	printf("Copying: %s | Size: %d\n", filename, s);
+	
+	char src[s+1];
+	fread(src, sizeof(char), s, f);
+	src[strlen(src)-1] = '\0';
+	fclose(f);
+		
+	// create new base version
+	FILE *b = fopen(base_copy, "w+");
+	fwrite(src, sizeof(char), s, b);
+	fclose(b);
+
+	
+}
 
 void genCommitId(char *id) {
 	srand(time(0));
@@ -111,147 +149,65 @@ void rollbackToCommit(char *cid) {
 }
 
 void revertToCommit(char *cid) {
-	DIR *dirobj = opendir(COMM_DIR);	
-	struct dirent *commits = readdir(dirobj);
-
-	int *cr_date;
-	char *full_commit;
+	// read logfile
+	FILE *l = fopen(LOGFILE, "r");
+	char line[ID_LEN+1];
+	memset(&line, 0, sizeof(line));
+	char cm[ID_LEN+1];
+	memset(&cm, 0, sizeof(cm));
 	char *second_full;
-	while(commits != NULL) {
-		if(strncmp(cid, commits->d_name, strlen(cid)) == 0) {
-			printf("reverting to commit %s...\n", commits->d_name);	
-			FILE *head = fopen(".rep/HEAD", "w+");
-			fprintf(head, "%s", commits->d_name);
-			fclose(head);
-			cr_date = getTimeStamp(commits->d_name);
-
-			printf("%d %d %d, %d %d %d\n", cr_date[0], cr_date[1], cr_date[2], cr_date[3], cr_date[4], cr_date[5]);
-			full_commit = (char*)malloc(sizeof(char)*(strlen(commits->d_name)+1));
-			strcpy(full_commit, commits->d_name);
-			
-			break;
-		}
-		commits = readdir(dirobj);
-	}
-	closedir(dirobj);
-	// do another pass over directory to delete folders
+	int t = 0;
+	char msg[256];
+	size_t s = 0;
 	
-	DIR *second = opendir(COMM_DIR);
-	struct dirent *scnd = readdir(second);
-	while(scnd != NULL) {
-		second_full = (char*)malloc(sizeof(char)*(strlen(COMM_DIR)+strlen(scnd->d_name)+1));
-		strcpy(second_full, COMM_DIR);
-		strcat(second_full, scnd->d_name);
-		if(strcmp(full_commit, scnd->d_name) != 0 && strcmp(scnd->d_name, ".") != 0 && strcmp(scnd->d_name, "..") != 0) {
-			int *this_date = getTimeStamp(scnd->d_name);
-			printf("%d %d %d, %d %d %d\n", this_date[0], this_date[1], this_date[2], this_date[3], this_date[4], this_date[5]);
+	while(fscanf(l, "%s %d %s\n", cm, &t, msg) != -1) {
+		if(strncmp(cid, cm, strlen(cid)) == 0) {
+			printf("Reverting to commit %s...\n", cm);
+			FILE *head = fopen(".rep/HEAD", "w+");
 
-			//printf("%s\n", second_full);
-			if(cr_date[2] < this_date[2]) {
-				DIR *sf = opendir(second_full);	
-				struct dirent *old = readdir(sf);
-				while(old != NULL) {
-					if(old->d_type == DT_REG) {
-						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
-						strcpy(d, second_full);
-						strcat(d, "/");
-						strcat(d, old->d_name);
-						unlink(old->d_name);
-						free(d);
-					}
-					old = readdir(sf);
-				}	
-				rmdir(second_full);
-				return;
-			} else if(cr_date[1] < this_date[1]) {
-				DIR *sf = opendir(second_full);	
-				struct dirent *old = readdir(sf);
-				while(old != NULL) {
-					if(old->d_type == DT_REG) {
-						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
-						strcpy(d, second_full);
-						strcat(d, "/");
-						strcat(d, old->d_name);
-						unlink(old->d_name);
-						free(d);
-					}
-					old = readdir(sf);
-				}
-				rmdir(second_full);
-				return;
-			} else if(cr_date[0] < this_date[0]) {
-				DIR *sf = opendir(second_full);	
-				struct dirent *old = readdir(sf);
-				while(old != NULL) {
-					if(old->d_type == DT_REG) {
-						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
-						strcpy(d, second_full);
-						strcat(d, "/");
-						strcat(d, old->d_name);
-						unlink(old->d_name);
-						free(d);
-					}
-					old = readdir(sf);
-				}
-				rmdir(second_full);
-				return;
-			} else if(cr_date[3] < this_date[3]) {
-				DIR *sf = opendir(second_full);	
-				struct dirent *old = readdir(sf);
-				while(old != NULL) {
-					if(old->d_type == DT_REG) {
-						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
-						strcpy(d, second_full);
-						strcat(d, "/");
-						strcat(d, old->d_name);
-						unlink(old->d_name);
-						free(d);
-					}
-					old = readdir(sf);
-				}
-				rmdir(second_full);
-				return;
-			} else if(cr_date[4] < this_date[4]) {
-				DIR *sf = opendir(second_full);	
-				struct dirent *old = readdir(sf);
-				while(old != NULL) {
-					if(old->d_type == DT_REG) {
-						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
-						strcpy(d, second_full);
-						strcat(d, "/");
-						strcat(d, old->d_name);
-						unlink(old->d_name);
-						free(d);
-					}
-					old = readdir(sf);
-				}
-				rmdir(second_full);
-				return;
-			} else if(cr_date[5] < this_date[5]) {
-				DIR *sf = opendir(second_full);	
-				struct dirent *old = readdir(sf);
-				
-				while(old != NULL) {
-					if(old->d_type == DT_REG) {
-						char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
-						strcpy(d, second_full);
-						strcat(d, "/");
-						strcat(d, old->d_name);
-						unlink(d);
-						free(d);
-					}
-					old = readdir(sf);
-				}
-				rmdir(second_full);
-				return;
-			}
+			fprintf(head, "%s", cm);
+			fclose(head);
+			break;
+
 		}
-		scnd = readdir(second);
-		memset(&second_full, 0, sizeof(second_full));
+		
 	}
-	closedir(second);
+	fclose(l);
 
-	printf("Error: could not find commit starting with %s...\n", cid);
+	
+	FILE *log = fopen(LOGFILE, "r");
+		
+	int time_var = 0;
+
+	while(fscanf(log, "%s %d %s\n", line, &time_var, msg) != -1) {
+		if(t < time_var) {
+
+			memset(&second_full, 0, sizeof(second_full));
+			second_full = (char*)malloc(sizeof(char)*(strlen(COMM_DIR)+strlen(line)+1));
+			strcpy(second_full, COMM_DIR);
+			strcat(second_full, line);
+			//printf("%s\n", second_full);
+			DIR *sf = opendir(second_full);	
+			struct dirent *old = readdir(sf);
+			while(old != NULL) {
+				if(old->d_type == DT_REG) {
+					char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
+					strcpy(d, second_full);
+					strcat(d, "/");
+					strcat(d, old->d_name);
+					unlink(d);
+					free(d);
+				}
+				old = readdir(sf);
+			}	
+			rmdir(second_full);
+			//break;
+		}
+	}
+	fclose(log);
+
+	free(second_full);
+	//printf("Error: could not find commit starting with %s...\n", cid);
 }
 
 char *getProjectDir() {
@@ -349,7 +305,7 @@ void writeCommitFile(strobject *head, char *filename, int res) {
 		return;
 	}
 	// skip the head node
-	strobject *n = head->next;
+	strobject *n = (struct strobject_struct *)head->next;
 
 	// writing commit to file works
 	FILE *commit = fopen(filename, "w+");
@@ -374,7 +330,7 @@ void writeCommitFile(strobject *head, char *filename, int res) {
 		} else {
 			space_counter+=1;	
 		}
-		n = n->next;
+		n = (struct strobject_struct *)n->next;
 	}
 	// write custom end of file character
 	fwrite(&endind, sizeof(endind), 1, commit);	
@@ -478,13 +434,13 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 	fclose(hd);
 			
 	printf("Creating commit %s: %s...\n", cid, commit_msg);
-	addCommitMessage(commit_msg, cid);
+	recordCommit(cid, commit_msg);
 	char *scandir = getProjectDir();	
 	//printf("%s\n", scandir);
 		
 	DIR *dirobj = opendir(BASE_DIR);	
 	struct dirent *file_list = readdir(dirobj);
-	addTimeStamp(cid);	
+	//addTimeStamp(cid);	
 
 	while(file_list != NULL) {	
 		// only track files in dir base for now
@@ -591,40 +547,6 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 }
 
 
-void copyFile(char *filename) {
-	// create new filename
-	char *ext = ".bas";
-	char *base_copy = (char*)malloc(sizeof(char)*(strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1));
-
-	strcpy(base_copy, BASE_DIR);
-	strcat(base_copy, filename);
-	strcat(base_copy, ext);
-
-	// load original file
-	FILE *f = fopen(filename, "r");
-	if(f == NULL) {
-		printf("%s not found, skipping..\n", filename);
-		return;
-	}
-	fseek(f, 0L, SEEK_END);
-	size_t s = ftell(f);
-	rewind(f);
-
-	printf("Copying: %s | Size: %d\n", filename, s);
-	
-	char src[s+1];
-	fread(src, sizeof(char), s, f);
-	src[strlen(src)-1] = '\0';
-	fclose(f);
-		
-	// create new base version
-	FILE *b = fopen(base_copy, "w+");
-	fwrite(src, sizeof(char), s, b);
-	fclose(b);
-
-	
-}
-
 void initRepository(char *dirname, char **ign, int i_size) {
 	DIR *dirobj = opendir(dirname);	
 	struct dirent *file_list = readdir(dirobj);
@@ -642,6 +564,7 @@ void initRepository(char *dirname, char **ign, int i_size) {
 		fclose(head);
 		createFileRegistry(dirname);
 		setProjectDir(dirname);
+		logBase();
 	}
 	while(file_list != NULL) {	
 		// only track files in dir base for now

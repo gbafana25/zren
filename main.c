@@ -20,6 +20,10 @@ int main(int argc, char **argv) {
 			initRepository(argv[2], ign, s);
 			exit(0);
 		} else if(strcmp("commit", argv[1]) == 0) {
+			if(strlen(argv[2]) > 255) {
+				printf("commit message too long, exiting..\n");
+				exit(0);
+			}
 			char *data = openIgnoreFile();
 			int s = 0;
 			char **ign = parseIgnoreFile(data, &s);

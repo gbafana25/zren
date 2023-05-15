@@ -12,15 +12,15 @@ void initBaseObject(baseobject *bo, char *data) {
 
 void initStrObject(strobject *so, char data, strobject* n, types tp) {
 	so->data = data;
-	so->next = n;	
+	so->next = (struct strobject *)n;	
 	so->t = tp;
 }
 
 
 void insertStrObject(strobject *so, strobject *new) {
-	strobject *temp = so->next;
-	so->next = new;
-	new->next = temp;
+	strobject *temp = (struct strobject_struct *)so->next;
+	so->next = (struct strobject *)new;
+	new->next = (struct strobject *)temp;
 
 }
 
