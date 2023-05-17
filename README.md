@@ -24,8 +24,6 @@ version control system
 - if there's a malloc error, `make clean` and compile again
 
 ## TODO
-- make rollback use new log file
+- create git-like staging area <- ignore file should be parsed here, not in commit
 - recursively track files in inner directories
-- create git-like staging area
-- figure out why malloc still returns an error sometimes (if it happens again)
 

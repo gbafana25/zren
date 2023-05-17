@@ -148,6 +148,53 @@ void rollbackToCommit(char *cid) {
 	closedir(dirobj);
 }
 
+bool isAlreadyStaged(char *opt) {
+	FILE *stage = fopen(".rep/STAGE", "a+");
+	char n[256];
+	while(fscanf(stage, "%s\n", n) != -1) {
+		//printf("%s\n", n);
+		if(strcmp(n, opt) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+// add files to staging area
+void stageFiles(char **opt, char **ign, int i_size, int opt_size) {
+	// just add one file
+	FILE *stage = fopen(".rep/STAGE", "w+");
+	if(strcmp(opt[2], "--all") != 0) {	
+		for(int i = 2; i < opt_size; i++) {
+			int is_staged = isAlreadyStaged(opt[i]);
+			if(!is_staged) {
+				fprintf(stage, "%s\n", opt[i]);	
+			}
+		}
+		fclose(stage);
+		return;
+	} else {
+		char d[256];
+		size_t dir_size = 256;
+		getcwd(d, dir_size);
+		DIR *dirobj = opendir(d);
+		struct dirent *file_list = readdir(dirobj);
+		bool ignore = false;
+		while(file_list != NULL) {
+			bool is_staged = isAlreadyStaged(file_list->d_name);
+			if(!is_staged) {
+				fprintf(stage, "%s\n", file_list->d_name);
+			}
+				
+			file_list = readdir(dirobj);
+		}
+		closedir(dirobj);
+	
+		fclose(stage);
+		return;
+	}
+}
+
 void revertToCommit(char *cid) {
 	// read logfile
 	FILE *l = fopen(LOGFILE, "r");

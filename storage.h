@@ -20,5 +20,6 @@ void addFile(char *name);
 void revertToCommit(char *cid);
 // just sets head to commit id
 void rollbackToCommit(char *cid);
+void stageFiles(char **opt, char **ign, int i_size, int opt_size);
 
 #endif

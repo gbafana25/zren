@@ -7,18 +7,18 @@
 #include "ignore.h"
 #include "menu.h"
 
-int main(int argc, char **argv) { 
-
-	baseobject base;
-	baseobject mod;
+int main(int argc, char **argv) { 	
 	
 	if(argc == 3) {
+		// create repository specified directory
 		if(strcmp("init", argv[1]) == 0) {	
+			// read ignore file
 			char *data = openIgnoreFile();
 			int s = 0;
 			char **ign = parseIgnoreFile(data, &s);
 			initRepository(argv[2], ign, s);
 			exit(0);
+		// commit a change 
 		} else if(strcmp("commit", argv[1]) == 0) {
 			if(strlen(argv[2]) > 255) {
 				printf("commit message too long, exiting..\n");
@@ -37,13 +37,18 @@ int main(int argc, char **argv) {
 			exit(0);
 		} else if(strcmp("rollback", argv[1]) == 0) {
 			rollbackToCommit(argv[2]);
-			exit(0);
-		} else {
-			
+			exit(0); 	
+		} else {	
 			printHelpMenu();
 			exit(0);
 
 		}
+	} else if(strcmp("stage", argv[1]) == 0 && argc >= 3) {
+			char *data = openIgnoreFile();
+			int s = 0;
+			char **ign = parseIgnoreFile(data, &s);
+			stageFiles(argv, ign, s, argc);	
+			exit(0);
 	} else {
 		printHelpMenu();
 		exit(0);
