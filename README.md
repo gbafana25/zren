@@ -26,4 +26,3 @@ version control system
 ## TODO
 - create git-like staging area <- ignore file should be parsed here, not in commit
 - recursively track files in inner directories
-

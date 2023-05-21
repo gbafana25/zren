@@ -6,10 +6,14 @@
 #include "storage.h" 
 #include "ignore.h"
 #include "menu.h"
+#include "log.h"
 
 int main(int argc, char **argv) { 	
-	
-	if(argc == 3) {
+
+	if(strcmp("log", argv[1]) == 0) {		
+		outputLogfile(argv, argc);
+		exit(0);
+	} else if(argc == 3) {
 		// create repository specified directory
 		if(strcmp("init", argv[1]) == 0) {	
 			// read ignore file
@@ -48,7 +52,7 @@ int main(int argc, char **argv) {
 			int s = 0;
 			char **ign = parseIgnoreFile(data, &s);
 			stageFiles(argv, ign, s, argc);	
-			exit(0);
+			exit(0); 
 	} else {
 		printHelpMenu();
 		exit(0);
