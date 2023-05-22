@@ -568,6 +568,9 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 			
 	}	
 
+	fclose(stage);
+	FILE *overwrite = fopen(".rep/STAGE", "w");
+	fclose(overwrite);
 	
 }
 

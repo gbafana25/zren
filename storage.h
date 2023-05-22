@@ -2,7 +2,9 @@
 #define STORAGE_H
 
 #include <time.h>
+#include <stdbool.h>
 #include "track.h"
+
 
 void writeCommitFile(strobject *head, char *filename, int res);
 // read and apply commit to base
@@ -21,5 +23,6 @@ void revertToCommit(char *cid);
 // just sets head to commit id
 void rollbackToCommit(char *cid);
 void stageFiles(char **opt, char **ign, int i_size, int opt_size);
+bool isAlreadyStaged(char *opt);
 
 #endif
