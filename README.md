@@ -10,7 +10,6 @@ version control system
 	- put each character/space different in struct, don't group characters/spaces until writing final commit file
 
 	- base/reference files: (separate from 1st commit) will have their own directory and extension (`.bas`)
-	- hash/identifier for now: random string generator
 	
 ## Directory Structure
 - base `.rep` folder in directory
@@ -24,5 +23,6 @@ version control system
 - if there's a malloc error, `make clean` and compile again
 
 ## TODO
-- create git-like staging area <- ignore file should be parsed here, not in commit
+- create git-like staging area
+	- add ability to show stage status (like git status)
 - recursively track files in inner directories
