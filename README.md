@@ -18,11 +18,8 @@ version control system
 	- [x] `base` directory will have files from first commit
 	- [x] have `.gitignore`-like file
 	- [x] config/log file for commit id, message, and timestamp
-
-## Dev. notes
-- if there's a malloc error, `make clean` and compile again
+	- [x] `STAGE` file that holds files ready to be committed
 
 ## TODO
-- create git-like staging area
-	- add ability to show stage status (like git status)
+- add ability to show stage status (like git status)
 - recursively track files in inner directories
