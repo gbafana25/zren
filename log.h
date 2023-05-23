@@ -5,6 +5,7 @@
 
 void recordCommit(char *cid, char *msg);
 char *slugMesage(char *msg);
+char *deslugMessage(char *msg);
 void logBase();
 void outputLogfile(char **opt, int count);
 

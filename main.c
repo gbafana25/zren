@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 		char **ign = parseIgnoreFile(data, &s);
 		printStage(ign, s);
 		exit(0);
-	} else if(argc == 3) {
+	} else if(argc >= 3) {
 		// create repository specified directory
 		if(strcmp("init", argv[1]) == 0) {	
 			// read ignore file

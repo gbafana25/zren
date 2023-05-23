@@ -163,8 +163,9 @@ bool isAlreadyStaged(char *opt) {
 // add files to staging area
 void stageFiles(char **opt, char **ign, int i_size, int opt_size) {
 	// just add one file
-	FILE *stage = fopen(".rep/STAGE", "w+");
+	FILE *stage;
 	if(strcmp(opt[2], "--all") != 0) {	
+		stage = fopen(".rep/STAGE", "a+");
 		for(int i = 2; i < opt_size; i++) {
 			int is_staged = isAlreadyStaged(opt[i]);
 			if(!is_staged) {
@@ -174,6 +175,7 @@ void stageFiles(char **opt, char **ign, int i_size, int opt_size) {
 		fclose(stage);
 		return;
 	} else {
+		stage = fopen(".rep/STAGE", "w+");
 		char d[256];
 		size_t dir_size = 256;
 		getcwd(d, dir_size);

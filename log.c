@@ -14,6 +14,15 @@ char *slugMessage(char *msg) {
 	return msg;
 }
 
+char *deslugMessage(char *msg) {
+	for(int i = 0; i < strlen(msg); i++) {
+		if(msg[i] == '-') {
+			msg[i] = ' ';
+		}
+	}
+	return msg;
+}
+
 void recordCommit(char *cid, char *msg) {
 	FILE *l = fopen(LOGFILE, "a+");
 	time_t t = 0;
@@ -71,13 +80,13 @@ void outputLogfile(char **opt, int count) {
 		if(count == 2) {
 			// convert time to human-readable format
 			timestr = localtime(&timestamp);	
-			printf("\033[33m%s\033[0m \033[91m%s\033[0m \n\t\033[;1m%s\033[0m\n", id, asctime(timestr), msg);
+			printf("\033[33m%s\033[0m \033[91m%s\033[0m \n\t\033[;1m%s\033[0m\n", id, asctime(timestr), deslugMessage(msg));
 		} else if(showTime(opt, count) == true) {
 			// convert time to human-readable format
 			timestr = localtime(&timestamp);	
 			printf("%s", asctime(timestr));
 		} else if(showMessage(opt, count) == true) {
-			printf(" %s", msg);
+			printf(" %s", deslugMessage(msg));
 		} else if(showId(opt, count) == true) {
 			printf(" %s", id);
 		}
