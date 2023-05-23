@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <errno.h>
 
 #include "track.h"
 #include "log.h"
@@ -576,6 +577,32 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 	
 }
 
+void getSubdir(char *dir) {
+	//printf("%s\n", dir);
+	char b[512];
+	DIR *sub = opendir(dir);
+	//struct dirent *sub_list = readdir(sub);
+	struct dirent *sub_list;
+	if(!sub) {
+		return;
+	}
+	while((sub_list = readdir(sub)) != NULL) {
+		if(sub_list->d_type == DT_DIR && strcmp(sub_list->d_name, ".") != 0 && strcmp(sub_list->d_name, "..") != 0 && strcmp(sub_list->d_name, ".rep") && strcmp(sub_list->d_name, ".git") != 0) {
+			//printf("%s\n", sub_list->d_name);
+			FILE *dirlist = fopen(".rep/SUBDIRS", "a+");
+			strcpy(b, dir);
+			strcat(b, "/");
+			strcat(b, sub_list->d_name);
+			fprintf(dirlist, "%s\n", b);
+			fclose(dirlist);
+			getSubdir(b);
+		} 
+		
+		
+	}
+	closedir(sub);
+}
+
 
 void initRepository(char *dirname, char **ign, int i_size) {
 	DIR *dirobj = opendir(dirname);	
@@ -598,6 +625,8 @@ void initRepository(char *dirname, char **ign, int i_size) {
 	}
 	while(file_list != NULL) {	
 		// only track files in dir base for now
+		
+		
 		if(file_list->d_type == DT_REG) {
 			// do intial scan for files, put name into FILES
 			// copy over file (w/ different extension
@@ -619,6 +648,22 @@ void initRepository(char *dirname, char **ign, int i_size) {
 			if(copy) {
 				copyFile(file_list->d_name);
 			}
+		}
+		/*
+			to track directories:
+			have list of subdirs in .rep base
+			go to separate recursive function hear that
+			gathers folder names and builds full paths for each
+
+			when creating commits, createCommit will read from 
+			base dir and subdir list
+		*/
+		else if(file_list->d_type == DT_DIR && strcmp(file_list->d_name, ".") != 0 && strcmp(file_list->d_name, "..") != 0 && strcmp(file_list->d_name, ".git") != 0) {
+			
+			FILE *dirlist = fopen(".rep/SUBDIRS", "a+");
+			fprintf(dirlist, "%s\n", file_list->d_name);
+			fclose(dirlist);
+			getSubdir(file_list->d_name);	
 		}
 		file_list = readdir(dirobj);
 	}

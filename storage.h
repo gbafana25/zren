@@ -24,5 +24,6 @@ void revertToCommit(char *cid);
 void rollbackToCommit(char *cid);
 void stageFiles(char **opt, char **ign, int i_size, int opt_size);
 bool isAlreadyStaged(char *opt);
+void getSubdir(char *dir);
 
 #endif

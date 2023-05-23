@@ -4,3 +4,4 @@ file
 .rep/
 .ignore
 *.o
+test/
