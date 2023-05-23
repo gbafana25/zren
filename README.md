@@ -21,5 +21,6 @@ version control system
 	- [x] `STAGE` file that holds files ready to be committed
 
 ## TODO
+- add de-slugify function to `log.c`
 - recursively track files in inner directories
 - make one function to check if in ignorefile

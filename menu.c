@@ -26,6 +26,10 @@ void printHelpMenu() {
 
 void printStage(char **ign, int i_size) {
 	FILE *stage = fopen(".rep/STAGE", "r");
+	if(stage == NULL) {
+		printf("Error: couldn't find stage file\n");
+		return;
+	}
 	char name[256];
 	printf("Currently staged files:\n\n");
 	while(fscanf(stage, "%s\n", name) != -1) {

@@ -3,3 +3,4 @@ file
 *.swp
 .rep/
 .ignore
+*.o
