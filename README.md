@@ -21,4 +21,5 @@ version control system
 	- [x] `STAGE` file that holds files ready to be committed
 
 ## TODO
-- make one function to check if in ignorefile
+- change logfile format to include previous commit, show other actions (revert,rollback)
+- make `createCommit` use logfile

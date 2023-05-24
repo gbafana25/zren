@@ -16,6 +16,29 @@ char *openIgnoreFile() {
 	return data;
 }
 
+bool inIgnore(char *filename, char **ign, int i_size) {
+	for(int i = 0; i < i_size; i++) {
+		if(strncmp(filename, ".", 1) == 0 || strncmp(filename, "..", 2) == 0) {
+			//in_ignore = true;
+			//break;
+			return true;
+		} else if(strcmp(ign[i], filename) == 0) {
+			//in_ignore = true;
+			//break; 
+			return true;
+		} else if(ign[i][0] == '*') {	
+			int offset = strlen(filename)-(strlen(ign[i])-1);
+			//printf("%s %s\n", file_list->d_name+offset, ign[i]+1);
+			if(strncmp(filename+offset, ign[i]+1, strlen(ign[i])-1) == 0) {
+				//in_ignore = true;
+				//break;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 char **parseIgnoreFile(char *data, int *s) {
 	int count = 0;
 	int im_ind = 0;

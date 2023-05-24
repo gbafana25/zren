@@ -10,7 +10,10 @@
 
 int main(int argc, char **argv) { 	
 
-	if(strcmp("log", argv[1]) == 0) {		
+	if(argc == 1) {
+		printHelpMenu();
+		exit(0);
+	} else if(strcmp("log", argv[1]) == 0) {		
 		outputLogfile(argv, argc);
 		exit(0);
 	} else if(strcmp("status", argv[1]) == 0) {

@@ -12,6 +12,7 @@
 
 #include "track.h"
 #include "log.h"
+#include "ignore.h"
 
 #define LOGFILE ".rep/LOG"
 #define REPO_DIR ".rep"
@@ -185,23 +186,7 @@ void stageFiles(char **opt, char **ign, int i_size, int opt_size) {
 		bool ignore = false;
 		while(file_list != NULL) {
 			bool is_staged = isAlreadyStaged(file_list->d_name);
-			bool in_ignore = false;
-			for(int i = 0; i < i_size; i++) {
-				if(strncmp(file_list->d_name, ".", 1) == 0 || strncmp(file_list->d_name, "..", 2) == 0) {
-					in_ignore = true;
-					break;
-				} else if(strcmp(ign[i], file_list->d_name) == 0) {
-					in_ignore = true;
-					break; 
-				} else if(ign[i][0] == '*') {	
-					int offset = strlen(file_list->d_name)-(strlen(ign[i])-1);
-					//printf("%s %s\n", file_list->d_name+offset, ign[i]+1);
-					if(strncmp(file_list->d_name+offset, ign[i]+1, strlen(ign[i])-1) == 0) {
-						in_ignore = true;
-						break;
-					}
-				}
-			}	
+			bool in_ignore = inIgnore(file_list->d_name, ign, i_size);	
 			if(!is_staged && !in_ignore && file_list->d_type == DT_REG) {
 				
 				fprintf(stage, "%s\n", file_list->d_name);
@@ -622,69 +607,7 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 	fclose(stage);
 	FILE *overwrite = fopen(".rep/STAGE", "w");
 	fclose(overwrite);
-	/*
-	FILE *sub = fopen(".rep/SUBDIRS", "r");
-	char dir[512];
-	while(fscanf(sub, "%s\n", dir) != -1) {
-		DIR *s = opendir(dir);
-		struct dirent *sdir = readdir(s);
-		while(sdir != NULL) {
-			strobject head;
-			memset(&head, 0, sizeof(head));
-			initStrObject(&head, 'H', NULL, CHANGE); 
-			char full[strlen(BASE_DIR)+strlen(sdir->d_name)+strlen(base_ext)+1];
-			memset(&full, 0, sizeof(full));
-			strcat(full, BASE_DIR);
-			strcat(full, sdir->d_name);
-			strcat(full, base_ext);
-			
-			// 1. Get base (or most recent)
-			baseobject b;	
-			memset(&b, 0, sizeof(b));
-			getBaseFile(full, &b);	
-														// 2. get modified
-		
-			baseobject mod;
-			memset(&mod, 0, sizeof(mod));
-
-			commitfile = (char*)realloc(commitfile, sizeof(char)*(strlen(full_cpath)+strlen(sdir->d_name)+strlen(ext)+4));
-
-			strcat(commitfile, full_cpath);
-			strcat(commitfile, "/");
-			strcat(commitfile, sdir->d_name);
-			strcat(commitfile, ext);
-
-			if(is_base) {
-				
-				//full[strlen(full)-1] = '\0';
-
-				
-				int r = getBaseFile(sdir->d_name, &mod);
-
-				
-				findDiff(b.data, mod.data, &head);		
-			
-				printf("Applying %s\n", sdir->d_name);
-				writeCommitFile(&head, commitfile, r);		
-				// only this works for clearing commitfile
-				commitfile[0] = '\0';		
-			} else {
-				createFileRegistry(scandir);
-				char *latest = getMostRecent(&b, sdir->d_name, cid);
-				int r = getBaseFile(sdir->d_name, &mod);
-				findDiff(latest, mod.data, &head);
-
-				printf("Applying %s\n", sdir->d_name);
-				writeCommitFile(&head, commitfile, r);		
-				// only this works for clearing commitfile
-				commitfile[0] = '\0';
-			}
-			sdir = readdir(s);
-		}
-		closedir(s);
-	}
-	fclose(sub);
-	*/
+	
 	
 }
 
@@ -741,21 +664,8 @@ void initRepository(char *dirname, char **ign, int i_size) {
 		if(file_list->d_type == DT_REG) {
 			// do intial scan for files, put name into FILES
 			// copy over file (w/ different extension
-			bool copy = true;	
-			for(int i = 0; i < i_size; i++) {
-				//printf("%s: %s\n", file_list->d_name, ign[i]);
-				int offset = strlen(file_list->d_name)-(strlen(ign[i])-1);
-				
-				if(ign[i][0] == '*') {
-					if(strncmp(file_list->d_name+offset, ign[i]+1, strlen(ign[i])-1) == 0) {	
-						copy = false;
-						break;
-					}
-				} else if(strcmp(file_list->d_name, ign[i]) == 0) {
-					copy = false;	
-					break;
-				}
-			}
+			bool copy = inIgnore(file_list->d_name, ign, i_size);;	
+			
 			if(copy) {
 				copyFile(file_list->d_name);
 			}
@@ -794,21 +704,7 @@ void initRepository(char *dirname, char **ign, int i_size) {
 			if(file_list->d_type == DT_REG) {
 				// do intial scan for files, put name into FILES
 				// copy over file (w/ different extension
-				bool copy = true;	
-				for(int i = 0; i < i_size; i++) {
-					//printf("%s: %s\n", file_list->d_name, ign[i]);
-					int offset = strlen(file_list->d_name)-(strlen(ign[i])-1);
-					
-					if(ign[i][0] == '*') {
-						if(strncmp(file_list->d_name+offset, ign[i]+1, strlen(ign[i])-1) == 0) {	
-							copy = false;
-							break;
-						}
-					} else if(strcmp(file_list->d_name, ign[i]) == 0) {
-						copy = false;	
-						break;
-					}
-				}
+				bool copy = inIgnore(file_list->d_name, ign, i_size);	
 				if(copy) {
 					char bse[strlen(dir_name)+strlen(file_list->d_name)+2]; 
 					strcpy(bse, dir_name);
