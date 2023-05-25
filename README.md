@@ -20,6 +20,10 @@ version control system
 	- [x] config/log file for commit id, message, and timestamp
 	- [x] `STAGE` file that holds files ready to be committed
 
+## New logfile format
+- `[prev. commit]:[current commit id] [time] [action] : [message]`
+
 ## TODO
 - change logfile format to include previous commit, show other actions (revert,rollback)
 - make `createCommit` use logfile
+- times should be in UTC?
