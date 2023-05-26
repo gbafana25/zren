@@ -16,27 +16,30 @@ char *openIgnoreFile() {
 	return data;
 }
 
+// return values work when flipped for some reason
+// in createCommit (storage.c), the negation of this functions return is used
+// in stageFiles (storage.c), regular return value is used
 bool inIgnore(char *filename, char **ign, int i_size) {
 	for(int i = 0; i < i_size; i++) {
 		if(strncmp(filename, ".", 1) == 0 || strncmp(filename, "..", 2) == 0) {
 			//in_ignore = true;
 			//break;
-			return true;
+			return false;
 		} else if(strcmp(ign[i], filename) == 0) {
 			//in_ignore = true;
 			//break; 
-			return true;
+			return false;
 		} else if(ign[i][0] == '*') {	
 			int offset = strlen(filename)-(strlen(ign[i])-1);
 			//printf("%s %s\n", file_list->d_name+offset, ign[i]+1);
 			if(strncmp(filename+offset, ign[i]+1, strlen(ign[i])-1) == 0) {
 				//in_ignore = true;
 				//break;
-				return true;
+				return false;
 			}
 		}
 	}
-	return false;
+	return true;
 }
 
 char **parseIgnoreFile(char *data, int *s) {

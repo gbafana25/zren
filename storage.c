@@ -140,9 +140,13 @@ void rollbackToCommit(char *cid) {
 	while(commits != NULL) {
 		if(strncmp(cid, commits->d_name, strlen(cid)) == 0) {
 			printf("rolling back to commit %s...\n", commits->d_name);	
+			char *msg = "moving-head";
+			char *act = "rollback";
+			logAction(commits->d_name, msg, act);
 			FILE *head = fopen(".rep/HEAD", "w+");
 			fprintf(head, "%s", commits->d_name);
 			fclose(head);
+
 		}
 		commits = readdir(dirobj);
 	}
@@ -187,7 +191,7 @@ void stageFiles(char **opt, char **ign, int i_size, int opt_size) {
 		while(file_list != NULL) {
 			bool is_staged = isAlreadyStaged(file_list->d_name);
 			bool in_ignore = inIgnore(file_list->d_name, ign, i_size);	
-			if(!is_staged && !in_ignore && file_list->d_type == DT_REG) {
+			if(!is_staged && in_ignore && file_list->d_type == DT_REG) {
 				
 				fprintf(stage, "%s\n", file_list->d_name);
 				
@@ -212,7 +216,7 @@ void stageFiles(char **opt, char **ign, int i_size, int opt_size) {
 				bool is_staged = isAlreadyStaged(subflist->d_name);
 				if(!is_staged && strcmp(subflist->d_name, ".") != 0 && strcmp(subflist->d_name, "..") != 0 && subflist->d_type == DT_REG) {
 					strcat(dir_str, subflist->d_name);
-					printf("%s\n", dir_str);
+					//printf("%s\n", dir_str);
 					FILE *st = fopen(".rep/STAGE", "a+");
 					fprintf(st, "%s\n", dir_str);
 					fclose(st);
@@ -240,11 +244,14 @@ void revertToCommit(char *cid) {
 	char *second_full;
 	int t = 0;
 	char msg[256];
+	char action[45];
+
 	size_t s = 0;
 	
-	while(fscanf(l, "%s %d %s\n", cm, &t, msg) != -1) {
+	while(fscanf(l, "%s %d %s %s\n", cm, &t, action, msg) != -1) {
 		if(strncmp(cid, cm, strlen(cid)) == 0) {
 			printf("Reverting to commit %s...\n", cm);
+			logAction(cm, "reverting-head", "revert");
 			FILE *head = fopen(".rep/HEAD", "w+");
 
 			fprintf(head, "%s", cm);
@@ -261,7 +268,8 @@ void revertToCommit(char *cid) {
 		
 	int time_var = 0;
 
-	while(fscanf(log, "%s %d %s\n", line, &time_var, msg) != -1) {
+	char ac[45];
+	while(fscanf(log, "%s %d %s %s\n", line, &time_var, ac, msg) != -1) {
 		if(t < time_var) {
 
 			memset(&second_full, 0, sizeof(second_full));
@@ -517,7 +525,8 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 	fclose(hd);
 			
 	printf("Creating commit %s: %s...\n", cid, commit_msg);
-	recordCommit(cid, commit_msg);
+	//recordCommit(cid, commit_msg);
+	logAction(cid, commit_msg, "commit");
 	char *scandir = getProjectDir();	
 
 	// create subdirs in commit first
