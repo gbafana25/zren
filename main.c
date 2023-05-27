@@ -45,13 +45,12 @@ int main(int argc, char **argv) {
 		} else if(strcmp("add", argv[1]) == 0) {
 			addFile(argv[2]);
 			exit(0);
-		} else if(strcmp("revert", argv[1]) == 0) {
-			revertToCommit(argv[2]);
-			exit(0);
 		} else if(strcmp("rollback", argv[1]) == 0) {
-			rollbackToCommit(argv[2]);
-			exit(0); 		
-		
+			char *data = openIgnoreFile();
+			int s = 0;
+			char **ign = parseIgnoreFile(data, &s);
+			rollbackToCommit(argv[2], ign, s);
+			exit(0); 			
 		} else if(strcmp("stage", argv[1]) == 0 && argc >= 3) {
 			char *data = openIgnoreFile();
 			int s = 0;

@@ -134,24 +134,63 @@ void addTimeStamp(char *cid) {
 	free(full);
 }
 
-void rollbackToCommit(char *cid) {
-	DIR *dirobj = opendir(COMM_DIR);	
-	struct dirent *commits = readdir(dirobj);
-	while(commits != NULL) {
-		if(strncmp(cid, commits->d_name, strlen(cid)) == 0) {
-			printf("rolling back to commit %s...\n", commits->d_name);	
-			char *msg = "moving-head";
-			char *act = "rollback";
-			logAction(commits->d_name, msg, act);
-			FILE *head = fopen(".rep/HEAD", "w+");
-			fprintf(head, "%s", commits->d_name);
-			fclose(head);
+// copy files from desired commit, but generate new commit id, mark as rollback
+void rollbackToCommit(char *cid, char **ign, int i_size) {
+	FILE *log = fopen(".rep/LOG", "r");
+	char current_dir[256];
+	getcwd(current_dir, sizeof(current_dir));
+	char msg[256];
+	int t;
+	char action[45];
+	char id[25];
+	char *commitfile = (char*)malloc(4*sizeof(char));
+	char *ext = ".chg";
+	char *base_ext = ".bas";
+	bool is_current = false;
 
+	//printf("%s\n", full);
+
+	while(fscanf(log, "%s %d %s %s\n", id, &t, action, msg) != -1) {
+		 if(strncmp(cid, id, strlen(cid)) == 0) {
+			//printf("%s\n", id);	
+			char cid[ID_LEN+1];
+
+			char full_cpath[strlen(COMM_DIR)+ID_LEN+1];
+			genCommitId(cid);
+			strcat(full_cpath, COMM_DIR);
+			strcat(full_cpath, cid);
+			int d = mkdir(full_cpath, S_IRWXU);
+
+			// keep generating commit id if current is duplicate
+			while(d < 0) {
+				memset(&cid, 0, sizeof(cid));
+				memset(&full_cpath, 0, sizeof(full_cpath));
+				genCommitId(cid);
+				strcat(full_cpath, COMM_DIR);
+				strcat(full_cpath, cid);
+				full_cpath[strlen(full_cpath)-1] = '\0';
+
+				d = mkdir(full_cpath, S_IRWXU);
+			}
+
+			FILE *hd = fopen(".rep/HEAD", "w");
+			
+			fprintf(hd, "%s", cid);
+			fclose(hd);
+			
+			char cpath[strlen(COMM_DIR)+strlen(id)+1];
+			strcpy(cpath, COMM_DIR);
+			strcat(cpath, id);
+			printf("%s\n", cpath);
+			// loop over directory and copy changefiles into new folder
 		}
-		commits = readdir(dirobj);
+			
 	}
-
-	closedir(dirobj);
+	
+	
+	fclose(log);
+	
+	//logAction(commits->d_name, msg, act);
 }
 
 bool isAlreadyStaged(char *opt) {
@@ -234,71 +273,7 @@ void stageFiles(char **opt, char **ign, int i_size, int opt_size) {
 	}
 }
 
-void revertToCommit(char *cid) {
-	// read logfile
-	FILE *l = fopen(LOGFILE, "r");
-	char line[ID_LEN+1];
-	memset(&line, 0, sizeof(line));
-	char cm[ID_LEN+1];
-	memset(&cm, 0, sizeof(cm));
-	char *second_full;
-	int t = 0;
-	char msg[256];
-	char action[45];
 
-	size_t s = 0;
-	
-	while(fscanf(l, "%s %d %s %s\n", cm, &t, action, msg) != -1) {
-		if(strncmp(cid, cm, strlen(cid)) == 0) {
-			printf("Reverting to commit %s...\n", cm);
-			logAction(cm, "reverting-head", "revert");
-			FILE *head = fopen(".rep/HEAD", "w+");
-
-			fprintf(head, "%s", cm);
-			fclose(head);
-			break;
-
-		}
-		
-	}
-	fclose(l);
-
-	
-	FILE *log = fopen(LOGFILE, "r");
-		
-	int time_var = 0;
-
-	char ac[45];
-	while(fscanf(log, "%s %d %s %s\n", line, &time_var, ac, msg) != -1) {
-		if(t < time_var) {
-
-			memset(&second_full, 0, sizeof(second_full));
-			second_full = (char*)malloc(sizeof(char)*(strlen(COMM_DIR)+strlen(line)+1));
-			strcpy(second_full, COMM_DIR);
-			strcat(second_full, line);
-			//printf("%s\n", second_full);
-			DIR *sf = opendir(second_full);	
-			struct dirent *old = readdir(sf);
-			while(old != NULL) {
-				if(old->d_type == DT_REG) {
-					char *d = (char*)malloc(sizeof(char)*(strlen(second_full)+strlen(old->d_name)+2));
-					strcpy(d, second_full);
-					strcat(d, "/");
-					strcat(d, old->d_name);
-					unlink(d);
-					free(d);
-				}
-				old = readdir(sf);
-			}	
-			rmdir(second_full);
-			//break;
-		}
-	}
-	fclose(log);
-
-	free(second_full);
-	//printf("Error: could not find commit starting with %s...\n", cid);
-}
 
 char *getProjectDir() {
 		

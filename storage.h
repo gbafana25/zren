@@ -18,10 +18,7 @@ int getBaseFile(char *filename, baseobject *b);
 void getMostRecent(baseobject *bo);
 void addCommitMessage(char *msg, char *commit_id);
 void addFile(char *name);
-// 'hard resets' back to commit (deletes all following commits)
-void revertToCommit(char *cid);
-// just sets head to commit id
-void rollbackToCommit(char *cid);
+void rollbackToCommit(char *cid, char **ign, int i_size);
 void stageFiles(char **opt, char **ign, int i_size, int opt_size);
 bool isAlreadyStaged(char *opt);
 void getSubdir(char *dir);
