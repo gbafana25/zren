@@ -21,6 +21,7 @@ version control system
 	- [x] `STAGE` file that holds files ready to be committed
 
 ## TODO
-- rollback - creates new branch folder, starts with commit data from specified id, id used to create branch is stored in branch logs
-	- when creating new commits on that branch, it will start to read from main branch, until it gets to id where it branches off
+- rollback: new logfile for branch in `logs/`, add rollback in MAIN log
 - HEAD file should also record current branch, create `checkout` function to switch branches
+- add branch argument to all relevant functions 
+- fix segfault in `status` (at unstaged files list)

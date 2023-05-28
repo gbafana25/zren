@@ -134,52 +134,6 @@ void addTimeStamp(char *cid) {
 	free(full);
 }
 
-// copy files from desired commit, but generate new commit id, mark as rollback
-void rollbackToCommit(char *cid, char **ign, int i_size) {
-	FILE *log = fopen(MAIN_LOG, "r");
-	char current_dir[256];
-	getcwd(current_dir, sizeof(current_dir));
-	char msg[256];
-	int t;
-	char action[45];
-	char id[25];
-	char *commitfile = (char*)malloc(4*sizeof(char));
-	char *ext = ".chg";
-	char *base_ext = ".bas";
-	bool is_current = false;
-	char *prefix = "sub-";
-
-	//printf("%s\n", full);
-
-	while(fscanf(log, "%s %d %s %s\n", id, &t, action, msg) != -1) {
-		if(strncmp(cid, id, strlen(cid)) == 0) {
-			printf("%s\n", id);	
-			// make new branch name
-			char new_branch[strlen(BRANCH_DIR)+strlen(prefix)+9];
-			strcpy(new_branch, BRANCH_DIR);
-			strcat(new_branch, prefix);
-			strncat(new_branch, id, 8);
-
-			printf("%s\n", new_branch);
-			//mkdir(new_branch, S_IRWXU);
-
-			/*
-				
-			create new log file for new branch
-			include starting commit id (in log or other file)
-
-
-			*/
-		}	
-			
-	}
-	
-	
-	fclose(log);
-	
-	//logAction(commits->d_name, msg, act);
-}
-
 bool isAlreadyStaged(char *opt) {
 	FILE *stage = fopen(".rep/STAGE", "a+");
 	char n[256];
@@ -696,3 +650,107 @@ void initRepository(char *dirname, char **ign, int i_size) {
 	}
 }
 
+void rollbackToCommit(char *cid, char **ign, int i_size) {
+	FILE *log = fopen(MAIN_LOG, "r");
+	char current_dir[256];
+	getcwd(current_dir, sizeof(current_dir));
+	char msg[256];
+	int t;
+	char action[45];
+	char id[25];
+	char *commitfile = (char*)malloc(4*sizeof(char));
+	char *ext = ".chg";
+	char *base_ext = ".bas";
+	bool is_current = false;
+	char *prefix = "sub-";
+
+	//printf("%s\n", full);
+	char new_branch[strlen(BRANCH_DIR)+strlen(prefix)+10];
+
+	while(fscanf(log, "%s %d %s %s\n", id, &t, action, msg) != -1) {
+		if(strncmp(cid, id, strlen(cid)) == 0) {
+			printf("%s\n", id);	
+			// make new branch name
+			strcpy(new_branch, BRANCH_DIR);
+			strcat(new_branch, prefix);
+			strncat(new_branch, id, 8);
+			strcat(new_branch, "/");
+
+			rewind(log);
+			mkdir(new_branch, S_IRWXU);
+			break;
+
+			/*	
+			create new log file for new branch
+			include starting commit id (in log or other file)
+			*/
+
+		}	
+			
+	}
+	// copy changefiles from previous commits
+	while(fscanf(log, "%s %d %s %s\n", id, &t, action, msg) != -1) {
+			
+		if(strncmp(cid, id, strlen(cid)) == 0) {
+			break;
+		} else if(strcmp(id, "base") == 0) {
+			// ignore base
+			continue;
+		} else {
+			char new_ver[strlen(new_branch)+strlen(id)+1];
+			memset(&new_ver, 0, sizeof(new_ver));
+			strcat(new_ver, new_branch);
+			strcat(new_ver, id);
+			mkdir(new_ver, S_IRWXU);
+			DIR *home = opendir("."); // project root
+			struct dirent *hd = readdir(home);
+			while(hd != NULL) {
+				if(hd->d_type == DT_REG && inIgnore(hd->d_name, ign, i_size)) {	
+					//printf("%s\n", hd->d_name);
+					char fullchg[strlen(COMM_DIR)+ID_LEN+strlen(hd->d_name)+strlen(ext)+2];
+					strcpy(fullchg, COMM_DIR);
+					strcat(fullchg, id);
+					strcat(fullchg, "/");
+					strcat(fullchg, hd->d_name);
+					strcat(fullchg, ext);
+					//printf("%s\n", fullchg);
+					FILE *old = fopen(fullchg, "r");
+					fseek(old, 0L, SEEK_END);
+					size_t size = ftell(old);
+					rewind(old);
+					char *buf = (char*)malloc((size+1)*sizeof(char));
+					fread(buf, sizeof(char), size, old);
+					fclose(old);
+
+					// new location
+					char new_chg[strlen(new_ver)+strlen(hd->d_name)+strlen(ext)+2];
+					memset(&new_chg, 0, sizeof(new_chg));
+					strcat(new_chg, new_ver);
+					strcat(new_chg, "/");
+					strcat(new_chg, hd->d_name);
+					strcat(new_chg, ext);
+
+					//printf("%s\n", new_chg);
+
+					FILE *copy = fopen(new_chg, "w+");
+					fwrite(buf, sizeof(char), size, copy);
+					fclose(copy);
+
+					memset(&buf, 0, sizeof(buf));
+					memset(&new_chg, 0, sizeof(new_chg));
+					memset(&fullchg, 0, sizeof(fullchg));
+
+				}
+				hd = readdir(home);
+			}
+			closedir(home);
+		}
+	}
+	
+	//printf("%s\n", new_branch);
+	
+	
+	fclose(log);
+	
+	//logAction(commits->d_name, msg, act);
+}
