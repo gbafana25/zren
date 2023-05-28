@@ -14,10 +14,10 @@
 #include "log.h"
 #include "ignore.h"
 
-#define LOGFILE ".rep/LOG"
 #define REPO_DIR ".rep"
 #define BASE_DIR ".rep/base/"
-#define COMM_DIR ".rep/commits/"
+#define COMM_DIR ".rep/branches/main/"
+#define BRANCH_DIR ".rep/branches/"
 #define FILE_REG ".rep/FILES"
 #define DIR_FILE ".rep/PROJECT_DIR"
 #define IDENT_FILE ".rep/COMMIT_IDENTS"
@@ -136,7 +136,7 @@ void addTimeStamp(char *cid) {
 
 // copy files from desired commit, but generate new commit id, mark as rollback
 void rollbackToCommit(char *cid, char **ign, int i_size) {
-	FILE *log = fopen(".rep/LOG", "r");
+	FILE *log = fopen(MAIN_LOG, "r");
 	char current_dir[256];
 	getcwd(current_dir, sizeof(current_dir));
 	char msg[256];
@@ -147,43 +147,30 @@ void rollbackToCommit(char *cid, char **ign, int i_size) {
 	char *ext = ".chg";
 	char *base_ext = ".bas";
 	bool is_current = false;
+	char *prefix = "sub-";
 
 	//printf("%s\n", full);
 
 	while(fscanf(log, "%s %d %s %s\n", id, &t, action, msg) != -1) {
-		 if(strncmp(cid, id, strlen(cid)) == 0) {
-			//printf("%s\n", id);	
-			char cid[ID_LEN+1];
+		if(strncmp(cid, id, strlen(cid)) == 0) {
+			printf("%s\n", id);	
+			// make new branch name
+			char new_branch[strlen(BRANCH_DIR)+strlen(prefix)+9];
+			strcpy(new_branch, BRANCH_DIR);
+			strcat(new_branch, prefix);
+			strncat(new_branch, id, 8);
 
-			char full_cpath[strlen(COMM_DIR)+ID_LEN+1];
-			genCommitId(cid);
-			strcat(full_cpath, COMM_DIR);
-			strcat(full_cpath, cid);
-			int d = mkdir(full_cpath, S_IRWXU);
+			printf("%s\n", new_branch);
+			//mkdir(new_branch, S_IRWXU);
 
-			// keep generating commit id if current is duplicate
-			while(d < 0) {
-				memset(&cid, 0, sizeof(cid));
-				memset(&full_cpath, 0, sizeof(full_cpath));
-				genCommitId(cid);
-				strcat(full_cpath, COMM_DIR);
-				strcat(full_cpath, cid);
-				full_cpath[strlen(full_cpath)-1] = '\0';
+			/*
+				
+			create new log file for new branch
+			include starting commit id (in log or other file)
 
-				d = mkdir(full_cpath, S_IRWXU);
-			}
 
-			FILE *hd = fopen(".rep/HEAD", "w");
-			
-			fprintf(hd, "%s", cid);
-			fclose(hd);
-			
-			char cpath[strlen(COMM_DIR)+strlen(id)+1];
-			strcpy(cpath, COMM_DIR);
-			strcat(cpath, id);
-			printf("%s\n", cpath);
-			// loop over directory and copy changefiles into new folder
-		}
+			*/
+		}	
 			
 	}
 	
@@ -421,7 +408,8 @@ int getBaseFile(char *filename, baseobject *base) {
 }
 
 char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit) {	
-	DIR *old = opendir(".rep/commits/");
+	
+	DIR *old = opendir(COMM_DIR);
 	struct dirent *commits = readdir(old);
 	char *ex1 = ".";
 	char *ex2 = "..";
@@ -501,7 +489,7 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 			
 	printf("Creating commit %s: %s...\n", cid, commit_msg);
 	//recordCommit(cid, commit_msg);
-	logAction(cid, commit_msg, "commit");
+	logAction(cid, commit_msg, "commit", MAIN_LOG);
 	char *scandir = getProjectDir();	
 
 	// create subdirs in commit first
@@ -632,7 +620,9 @@ void initRepository(char *dirname, char **ign, int i_size) {
 		return;
 	} else {
 		mkdir(BASE_DIR, S_IRWXU);
+		mkdir(BRANCH_DIR, S_IRWXU);
 		mkdir(COMM_DIR, S_IRWXU);
+		mkdir(LOG_DIR, S_IRWXU);
 		// create file to store current commit
 		FILE *head = fopen(".rep/HEAD", "w+");
 		fprintf(head, "%s", "BASE");

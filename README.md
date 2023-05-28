@@ -21,5 +21,6 @@ version control system
 	- [x] `STAGE` file that holds files ready to be committed
 
 ## TODO
-- delete revert and just use rollback
-	- rollback will create new commit with data from specified id
+- rollback - creates new branch folder, starts with commit data from specified id, id used to create branch is stored in branch logs
+	- when creating new commits on that branch, it will start to read from main branch, until it gets to id where it branches off
+- HEAD file should also record current branch, create `checkout` function to switch branches

@@ -21,8 +21,8 @@ void deslugMessage(char *msg) {
 	}
 }
 
-void logAction(char *cid, char *msg, char *action) {
-	FILE *l = fopen(LOGFILE, "a+");
+void logAction(char *cid, char *msg, char *action, char *logfile) {
+	FILE *l = fopen(logfile, "a+");
 	time_t t = 0;
 	t = time(NULL);
 	slugMessage(msg);
@@ -33,7 +33,7 @@ void logAction(char *cid, char *msg, char *action) {
 }
 
 void logBase() {
-	FILE *l = fopen(LOGFILE, "a+");
+	FILE *l = fopen(MAIN_LOG, "a+");
 	time_t t = 0;
 	t = time(NULL);
 	fprintf(l,"base %d commit base\n", t);
@@ -69,7 +69,7 @@ bool showTime(char **opt, int count) {
 
 // log command will include options to filter data
 void outputLogfile(char **opt, int count) {
-	FILE *l = fopen(LOGFILE, "r");
+	FILE *l = fopen(MAIN_LOG, "r");
 	char id[26];
 	char action[45];
 	time_t timestamp = 0;
