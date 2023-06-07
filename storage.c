@@ -679,6 +679,14 @@ void rollbackToCommit(char *cid, char **ign, int i_size) {
 			strcat(new_branch, prefix);
 			strncat(new_branch, id, 8);
 
+			//printf("%s\n", new_branch+(strlen(new_branch)-12));
+			// create new logfile
+			char *logdir = ".rep/logs/";
+			char newlog[strlen(logdir)+13];
+			strcpy(newlog, logdir);
+			strcat(newlog, new_branch+(strlen(new_branch)-12));
+			//printf("%s\n", newlog);
+			logAction(id, new_branch, "commit", newlog); 
 
 			// log rollback in main logfile
 			//printf("%s\n", getCurrentBranch());
