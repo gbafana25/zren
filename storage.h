@@ -22,5 +22,6 @@ void rollbackToCommit(char *cid, char **ign, int i_size);
 void stageFiles(char **opt, char **ign, int i_size, int opt_size);
 bool isAlreadyStaged(char *opt);
 void getSubdir(char *dir);
+void checkoutBranch(char *branch);
 
 #endif

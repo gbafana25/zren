@@ -22,6 +22,13 @@ int main(int argc, char **argv) {
 		char **ign = parseIgnoreFile(data, &s);
 		printStage(ign, s);
 		exit(0);
+	} else if(strcmp("checkout", argv[1]) == 0) {		
+		if(strlen(argv[2]) > 8) {
+			printf("requested branch id too long\n");
+			exit(0);
+		}
+		checkoutBranch(argv[2]);		
+		exit(0);
 	} else if(argc >= 3) {
 		// create repository specified directory
 		if(strcmp("init", argv[1]) == 0) {	

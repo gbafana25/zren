@@ -9,5 +9,6 @@ void slugMesage(char *msg);
 void deslugMessage(char *msg);
 void logBase();
 void outputLogfile(char **opt, int count);
+char *getCurrentBranch();
 
 #endif

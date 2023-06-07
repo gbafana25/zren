@@ -21,7 +21,6 @@ version control system
 	- [x] `STAGE` file that holds files ready to be committed
 
 ## TODO
-- rollback: new logfile for branch in `logs/`, add rollback in MAIN log
-- HEAD file should also record current branch, create `checkout` function to switch branches
+- rollback: new logfile for branch in `logs/`
 - add branch argument to all relevant functions 
 - fix segfault in `status` (at unstaged files list)

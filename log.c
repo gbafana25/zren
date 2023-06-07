@@ -2,6 +2,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include "log.h"
 
@@ -19,6 +20,15 @@ void deslugMessage(char *msg) {
 			msg[i] = ' ';
 		}
 	}
+}
+
+char *getCurrentBranch() {
+	char *br = (char*)malloc(sizeof(char)*(51)); 
+	char commit[50];
+	FILE *head = fopen(".rep/HEAD", "r");
+	fscanf(head, "%s %s", commit, br);	
+	fclose(head);
+	return br;
 }
 
 void logAction(char *cid, char *msg, char *action, char *logfile) {
