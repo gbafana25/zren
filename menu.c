@@ -9,6 +9,7 @@
 
 #include "menu.h"
 #include "storage.h"
+#include "log.h"
 
 void printHelpMenu() {
 	printf("zren help menu\n\n");
@@ -18,6 +19,7 @@ void printHelpMenu() {
 	printf("commit [message] - save current changes\n");
 	printf("add [filename] - add file to be tracked\n");
 	printf("rollback [commit_id] - set head to given commit\n");
+	printf("checkout [commit_id] - switch to specified branch\n");
 	printf("log [msg|id|time] - show repository log, with optional flags to filter options\n");
 	printf("stage [filename] or --all - move file(s) to staging area to be committed\n\n");
 
@@ -29,6 +31,11 @@ void printStage(char **ign, int i_size) {
 		printf("Error: couldn't find stage file\n");
 		return;
 	}
+	char *branch = getCurrentBranch();
+	char logpath[strlen(LOG_DIR)+strlen(branch)+1];
+	memset(&logpath, 0, sizeof(logpath));
+	strcat(logpath, LOG_DIR);	
+	strcat(logpath, branch);
 	char name[256];
 	printf("Currently staged files:\n\n");
 	while(fscanf(stage, "%s\n", name) != -1) {
@@ -62,7 +69,8 @@ void printStage(char **ign, int i_size) {
 			struct stat st;
 			stat(file_list->d_name, &st); 
 			// get most recent commit
-			FILE *log = fopen(".rep/LOG", "r");
+			
+			FILE *log = fopen(logpath, "r");
 			char n[256];
 			char m[256];
 			time_t t;
