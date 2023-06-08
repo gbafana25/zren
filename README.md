@@ -21,5 +21,4 @@ version control system
 	- [x] `STAGE` file that holds files ready to be committed
 
 ## TODO
-- add branch argument to all relevant functions 
 - fix segfault in `status` (at unstaged files list)

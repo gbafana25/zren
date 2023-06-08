@@ -459,6 +459,7 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 	
 	} else {
 		char logpath[strlen(LOG_DIR)+strlen(branch)+1];
+		memset(&logpath, 0, sizeof(logpath));
 		strcat(logpath, LOG_DIR);
 		strcat(logpath, branch);
 		logAction(cid, commit_msg, "commit", logpath);
