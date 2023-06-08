@@ -15,7 +15,7 @@ void copyFile(char *filename);
 void genCommitId(char *id);
 void createCommit(char **ign, int isize, char *commit_msg);
 int getBaseFile(char *filename, baseobject *b);
-void getMostRecent(baseobject *bo, char *name, char *commit);
+void getMostRecent(baseobject *bo, char *name, char *commit, char *branch);
 void addCommitMessage(char *msg, char *commit_id);
 void addFile(char *name);
 void rollbackToCommit(char *cid, char **ign, int i_size);

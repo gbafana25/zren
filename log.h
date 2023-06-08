@@ -2,7 +2,7 @@
 #define LOG_H
 
 #define MAIN_LOG ".rep/logs/MAIN"
-#define LOG_DIR ".rep/logs"
+#define LOG_DIR ".rep/logs/"
 
 void logAction(char *cid, char *msg, char *action, char *logfile);
 void slugMesage(char *msg);

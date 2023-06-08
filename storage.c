@@ -361,9 +361,12 @@ int getBaseFile(char *filename, baseobject *base) {
 	return 0;
 }
 
-char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit) {	
-	
-	DIR *old = opendir(COMM_DIR);
+char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit, char *branch) {	
+	char dirpath[strlen(BRANCH_DIR)+strlen(branch)+1];	
+	memset(&dirpath, 0, sizeof(dirpath));
+	strcat(dirpath, BRANCH_DIR);
+	strcat(dirpath, branch);
+	DIR *old = opendir(dirpath);
 	struct dirent *commits = readdir(old);
 	char *ex1 = ".";
 	char *ex2 = "..";
@@ -377,13 +380,14 @@ char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit) {
 			// apply commit to baseobject
 			
 			// build path
-			size_t s = strlen(COMM_DIR)+strlen(commits->d_name)+strlen(base_name)+strlen(newext)+3; 
+			size_t s = strlen(BRANCH_DIR)+strlen(commits->d_name)+strlen(base_name)+strlen(newext)+3; 
 			char full_path[s];
-			strncat(full_path, COMM_DIR, strlen(COMM_DIR));
+			strncat(full_path, BRANCH_DIR, strlen(BRANCH_DIR));
 			strncat(full_path, commits->d_name, strlen(commits->d_name));
 			strcat(full_path, "/");
 			strcat(full_path, base_name);
 			strcat(full_path, newext);
+			//printf("%s\n", full_path);
 
 			readCommitFile(full_path, bo);		
 			//full_path[strlen(full_path)-1] = '\0';
@@ -400,14 +404,19 @@ char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit) {
 
 void createCommit(char **ign, int i_size, char *commit_msg) {
 	char cid[ID_LEN+1];
-	char full_cpath[strlen(COMM_DIR)+ID_LEN+1];
-	char *commitfile = (char*)malloc(sizeof(char)*4);
+	char *branch = getCurrentBranch();
+	char full_cpath[strlen(BRANCH_DIR)+strlen(branch)+ID_LEN+2];
+	//char *commitfile = (char*)malloc(sizeof(char)*4);
+	//char *commitfile;
 	memset(&full_cpath, 0, sizeof(full_cpath));
 	memset(&cid, 0, sizeof(cid));
 	
 	genCommitId(cid);
-	strcat(full_cpath, COMM_DIR);
+	strcat(full_cpath, BRANCH_DIR);
+	strcat(full_cpath, branch);	
+	strcat(full_cpath, "/");
 	strcat(full_cpath, cid);
+	//printf("%s\n", full_cpath);
 	//full_cpath[strlen(full_cpath)-1] = '\0';
 
 	// get current commit (HEAD)
@@ -429,7 +438,9 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 		memset(&cid, 0, sizeof(cid));
 		memset(&full_cpath, 0, sizeof(full_cpath));
 		genCommitId(cid);
-		strcat(full_cpath, COMM_DIR);
+		strcat(full_cpath, BRANCH_DIR);
+		strcat(full_cpath, branch);	
+		strcat(full_cpath, "/");
 		strcat(full_cpath, cid);
 		full_cpath[strlen(full_cpath)-1] = '\0';
 
@@ -437,14 +448,21 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 	}
 
 	
-	char *branch = getCurrentBranch();
 	FILE *hd = fopen(".rep/HEAD", "w");
 	fprintf(hd, "%s %s", cid, branch);
 	fclose(hd);
 			
 	printf("Creating commit %s: %s...\n", cid, commit_msg);
 	//recordCommit(cid, commit_msg);
-	logAction(cid, commit_msg, "commit", MAIN_LOG);
+	if(strncmp(branch, "main", 4) == 0) {
+		logAction(cid, commit_msg, "commit", MAIN_LOG);
+	
+	} else {
+		char logpath[strlen(LOG_DIR)+strlen(branch)+1];
+		strcat(logpath, LOG_DIR);
+		strcat(logpath, branch);
+		logAction(cid, commit_msg, "commit", logpath);
+	}
 	char *scandir = getProjectDir();	
 
 	// create subdirs in commit first
@@ -483,8 +501,7 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 		strcat(full, BASE_DIR);
 		strcat(full, name);
 		strcat(full, base_ext);
-		
-		
+			
 		// 1. Get base (or most recent)
 		baseobject b;	
 		memset(&b, 0, sizeof(b));
@@ -496,13 +513,16 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 		baseobject mod;
 		memset(&mod, 0, sizeof(mod));
 
-		commitfile = (char*)realloc(commitfile, sizeof(char)*(strlen(full_cpath)+strlen(name)+strlen(ext)+4));
+		char commitfile[strlen(full_cpath)+strlen(name)+strlen(ext)+4];
+		memset(&commitfile, 0, sizeof(commitfile));
+		//commitfile = (char*)realloc(commitfile, sizeof(char)*(strlen(full_cpath)+strlen(name)+strlen(ext)+4));
 
 		strcat(commitfile, full_cpath);
 		strcat(commitfile, "/");
 		strcat(commitfile, name);
 		strcat(commitfile, ext);
-
+		//printf("%s\n", commitfile);
+		//printf("here %s\n", commitfile);
 		if(is_base) {
 			
 			//full[strlen(full)-1] = '\0';
@@ -518,8 +538,9 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 			// only this works for clearing commitfile
 			commitfile[0] = '\0';		
 		} else {
-			createFileRegistry(scandir);
-			char *latest = getMostRecent(&b, name, cid);
+			//createFileRegistry(scandir);
+			char *latest = getMostRecent(&b, name, cid, branch);
+			//printf("%s\n", latest);
 			int r = getBaseFile(name, &mod);
 			findDiff(latest, mod.data, &head);
 
@@ -528,6 +549,9 @@ void createCommit(char **ign, int i_size, char *commit_msg) {
 			// only this works for clearing commitfile
 			commitfile[0] = '\0';
 		}
+		commitfile[0] = '\0';
+		memset(&name, 0, sizeof(name));
+		full[0] = '\0';
 			
 	}	
 
