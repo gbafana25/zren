@@ -20,5 +20,4 @@ version control system
 	- [x] config/log file for commit id, message, and timestamp
 	- [x] `STAGE` file that holds files ready to be committed
 
-## TODO
-- fix segfault in `status` (at unstaged files list)
+Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
