@@ -1,7 +1,7 @@
 #ifndef LOG_H
 #define LOG_H
 
-#define MAIN_LOG ".rep/logs/MAIN"
+#define MAIN_LOG ".rep/logs/main"
 #define LOG_DIR ".rep/logs/"
 
 void logAction(char *cid, char *msg, char *action, char *logfile);

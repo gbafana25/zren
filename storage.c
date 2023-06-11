@@ -184,6 +184,10 @@ void stageFiles(char **opt, char **ign, int i_size, int opt_size) {
 	
 		fclose(stage);
 		FILE *sub = fopen(".rep/SUBDIRS", "r");
+		if(sub == NULL) {
+			printf("No subfolders...\n");
+			return;
+		}
 		char dir_str[256];
 		while(fscanf(sub, "%s\n", dir_str) != -1) {
 			//getcwd(full_dir, sizeof(full_dir));		

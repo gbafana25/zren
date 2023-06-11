@@ -13,11 +13,14 @@ version control system
 	
 ## Directory Structure
 - base `.rep` folder in directory
-	- [x] loop through `DIR` object of `commit` directory 
-	- [x] each commit identifier will be a directory inside `commits`
-	- [x] `base` directory will have files from first commit
-	- [x] have `.gitignore`-like file
-	- [x] config/log file for commit id, message, and timestamp
-	- [x] `STAGE` file that holds files ready to be committed
+	- `base`: directory holds the original file versions
+	- `branches`: holds sub folders for each commit 
+	- commits: identifier will be a directory inside their respective branch
+	- `logs`: logfiles for each branch, holds commit id, message, action type, and timestamp 
+	- `STAGE`: file that holds files ready to be committed
+	- `HEAD`: holds current repository head (commit id and branch) 
+
+## Branching
+- branches are created with the `rollback` command, which copies all commit files from the specified commit id into a separate branch. These branches are prefixed with `sub-`, along with the first 8 characters of the source commit id. Branches must be manually switched to with the `checkout` command, and all subsequent commit folders are placed in the new branch's folder. A new log function is created and  log information is printed for that branch only.
 
 Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
