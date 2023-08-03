@@ -819,13 +819,22 @@ void checkoutBranch(char *branch) {
 		brs = readdir(b);
 	}
 	char id[50];
+	char head_branch[25];
 	FILE *old_hd = fopen(".rep/HEAD", "r");
-	fscanf(old_hd, "%s", id);
-	printf("%s\n", id);
+	fscanf(old_hd, "%s %s", id, head_branch);
+	//printf("%s\n", id);
 	fclose(old_hd);
-	
-	FILE *head = fopen(".rep/HEAD", "w");
-	fprintf(head, "%s %s", id, full_branch);
-	fclose(head);
+	if(strcmp(branch, "main") == 0) {
+		FILE *head = fopen(".rep/HEAD", "w");
+		fprintf(head, "%s %s", id, "main");
+		fclose(head);
+		return;
+	} else {
+		FILE *head = fopen(".rep/HEAD", "w");
+		fprintf(head, "%s %s", id, full_branch);
+		fclose(head);
+		return;
 
+	}
+	
 }

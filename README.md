@@ -24,3 +24,7 @@ version control system
 - branches are created with the `rollback` command, which copies all commit files from the specified commit id into a separate branch. These branches are prefixed with `sub-`, along with the first 8 characters of the source commit id. Branches must be manually switched to with the `checkout` command, and all subsequent commit folders are placed in the new branch's folder. A new log function is created and  log information is printed for that branch only.
 
 Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
+
+## TODO
+- have files contents match current commit when switching/rolling back 
+- start server component (in same repository)
