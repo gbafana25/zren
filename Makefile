@@ -1,4 +1,4 @@
-OBJECTS = main.o ignore.o log.o menu.o storage.o track.o
+OBJECTS = main.o ignore.o log.o menu.o storage.o track.o client.o
 CC = gcc
 
 all: main 
@@ -18,6 +18,10 @@ log.o: log.c log.h
 
 menu.o: menu.c menu.h
 	$(CC) -c menu.c	
+
+client.o: client.c client.h
+	$(CC) -c client.c	
+
 
 storage.o: storage.c storage.h
 	$(CC) -c storage.c	

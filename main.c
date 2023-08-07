@@ -7,6 +7,7 @@
 #include "ignore.h"
 #include "menu.h"
 #include "log.h"
+#include "client.h"
 
 int main(int argc, char **argv) { 	
 
@@ -15,6 +16,13 @@ int main(int argc, char **argv) {
 		exit(0);
 	} else if(strcmp("log", argv[1]) == 0) {		
 		outputLogfile(argv, argc);
+		exit(0);
+	} else if(strcmp("client", argv[1]) == 0) {
+		localRepoInfo info = getCurrentCommit();	
+		packDir(&info);
+		//printf("%s %d\n", info.id, info.timestamp);
+		//printf("%d\n", info.size);
+		sendCommitInfo(&info);
 		exit(0);
 	} else if(strcmp("status", argv[1]) == 0) {
 		char *data = openIgnoreFile();
