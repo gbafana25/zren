@@ -21,7 +21,8 @@ int main(int argc, char **argv) {
 		localRepoInfo info = getCurrentCommit();	
 		packDir(&info);
 		//printf("%s %d\n", info.id, info.timestamp);
-		//printf("%d\n", info.size);
+		//info.size = pack_size;
+		//printf("%d\n", info.size); 
 		sendCommitInfo(&info);
 		exit(0);
 	} else if(strcmp("status", argv[1]) == 0) {

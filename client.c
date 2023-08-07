@@ -18,12 +18,18 @@ void sendCommitInfo(localRepoInfo *info) {
 	packfile_name[strlen(packfile_name)] = '\0';
 	
 	FILE* pfile = fopen(packfile_name, "rb");
-	void *pack_data = malloc(sizeof(info->size));
-	//char pack_data[info->size];
+	//void *pack_data = malloc(sizeof(info->size));
+	unsigned char pack_data[info->size];
 	//void pack_data[info->size];
-	fread(&pack_data, info->size, 1, pfile);
+	fread(pack_data, sizeof(pack_data), 1, pfile);
+
+	//printf("%d\n", sizeof(pack_data));
+	/*
+	for(int i = 0; i < 150; i++) {
+		printf("%d\n", pack_data[i]);
+	}
+	*/
 	
-	printf("%d\n", info->size);
 	fclose(pfile);
 	
 	/*
@@ -37,9 +43,11 @@ void sendCommitInfo(localRepoInfo *info) {
 
 	inet_pton(AF_INET, "127.0.0.1", &cli.sin_addr);
 	connect(sock, (struct sockaddr *)&cli, sizeof(cli));	
+	send(sock, pack_data, sizeof(pack_data), 0);
 	*/
 
 }
+
 
 localRepoInfo getCurrentCommit() {
 	localRepoInfo info;
@@ -81,6 +89,7 @@ localRepoInfo getCurrentCommit() {
 	return info;
 }
 
+
 void packDir(localRepoInfo *info) {
 	// change into commit directory
 	char *base_cmd = "tar cvf packfile-";
@@ -107,20 +116,18 @@ void packDir(localRepoInfo *info) {
 	system(full_command);
 	// get packfile size and add to struct
 	char packfile_name[strlen(PACKFILE_PREFIX)+strlen(info->id)];
+	memset(&packfile_name, 0, sizeof(packfile_name));
 	strcat(packfile_name, PACKFILE_PREFIX);
 	strcat(packfile_name, info->id);
+	
 	//printf("%s\n", packfile_name);
-	struct stat st;
-	stat(packfile_name, &st);
-	//size_t s = st.st_size;
-	/*
 	FILE* pfile = fopen(packfile_name, "r");
 	fseek(pfile, 0L, SEEK_END);
 	size_t s = ftell(pfile);
 	rewind(pfile);
 	fclose(pfile);
-	*/
-	info->size = st.st_size;
-	//printf("%d\n", info->size);
+
+	info->size = s;
+	//return s;
 
 }

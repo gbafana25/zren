@@ -26,14 +26,15 @@ version control system
 Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
 
 ## Server request format
-- client creates tarball, sends struct with action information
+- [x] client gets commit data and creates tarball 
 	- [x] data: id, time, action type, message, tarball size
 	- [x] 1. - get current commit, use to build folder path
 	- [x] 2. - create tarball (system())
-- server creates folders for action (new commit, new branch for rollback)
+- [ ] client sends struct with action information
+- [ ] server creates folders for action (new commit, new branch for rollback)
 - client sends tarball of folder
 
 
 ## TODO
 - have files contents match current commit when switching/rolling back 
-- start server component: info struct 
+- server component: add functions to recieve commit, repo init function to recieve base files, regenerate logs 
