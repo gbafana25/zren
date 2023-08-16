@@ -12,6 +12,8 @@
 
 void sendCommitInfo(localRepoInfo *info) {
 	char packfile_name[strlen(PACKFILE_PREFIX)+strlen(info->id)];
+	char inbuf[512];
+	memset(&inbuf, 0, sizeof(inbuf));
 	memset(&packfile_name, 0, sizeof(packfile_name));	
 	strcat(packfile_name, PACKFILE_PREFIX);
 	strcat(packfile_name, info->id);
@@ -32,24 +34,37 @@ void sendCommitInfo(localRepoInfo *info) {
 	
 	fclose(pfile);
 	
-	/*
-	int sock;
 	struct sockaddr_in cli;
 
-	sock = socket(AF_INET, SOCK_STREAM, 0);
+	int sock = socket(AF_INET, SOCK_STREAM, 0);
 
 	cli.sin_family = AF_INET;
 	cli.sin_port = htons(8010);
 
 	inet_pton(AF_INET, "127.0.0.1", &cli.sin_addr);
 	connect(sock, (struct sockaddr *)&cli, sizeof(cli));	
-	send(sock, pack_data, sizeof(pack_data), 0);
-	*/
+	// first send size data
+	//printf("%s %s %d\n", info->id, info->branch, info->timestamp);
+	//send(sock, info, sizeof(localRepoInfo), 0);
+	sprintf(inbuf, "%s %s %d %s %s %d", info->id, info->branch, info->timestamp, info->action, info->msg, info->size);
+	//printf("%s\n", inbuf);
+	inbuf[strlen(inbuf)] = '\0';
+	char recvbuf[128];
+	memset(&recvbuf, 0, sizeof(recvbuf));
+	send(sock, inbuf, strlen(inbuf), 0);
+	recv(sock, (void*)&recvbuf, sizeof(recvbuf), 0);
+	printf("%s\n", recvbuf);
+
+	if(strcmp(recvbuf, "ready") == 0) {
+		send(sock, pack_data, sizeof(pack_data), 0);
+	}
+	close(sock);
 
 }
 
 
-localRepoInfo getCurrentCommit() {
+localRepoInfo getCurrentCommit() 
+{
 	localRepoInfo info;
 	FILE *head = fopen(".rep/HEAD", "r");
 	char current_id[25];
@@ -90,7 +105,8 @@ localRepoInfo getCurrentCommit() {
 }
 
 
-void packDir(localRepoInfo *info) {
+void packDir(localRepoInfo *info) 
+{
 	// change into commit directory
 	char *base_cmd = "tar cvf packfile-";
 	char full_path[strlen(COMMIT_DIR)+strlen(info->branch)+strlen(info->id)+1];

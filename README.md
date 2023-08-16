@@ -30,11 +30,11 @@ Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
 	- [x] data: id, time, action type, message, tarball size
 	- [x] 1. - get current commit, use to build folder path
 	- [x] 2. - create tarball (system())
-- [ ] client sends struct with action information
-- [ ] server creates folders for action (new commit, new branch for rollback)
+- [x] client sends struct with action information
+- [x] server creates folders for action (new commit, new branch for rollback)
 - client sends tarball of folder
 
 
 ## TODO
 - have files contents match current commit when switching/rolling back 
-- server component: add functions to recieve commit, repo init function to recieve base files, regenerate logs 
+- server component: repo init function to recieve base files, regenerate logs, client can pull files back down 
