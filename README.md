@@ -37,4 +37,5 @@ Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
 
 ## TODO
 - have files contents match current commit when switching/rolling back 
-- server component: repo init function to recieve base files, regenerate logs, client can pull files back down 
+- fix `.ignore` not being followed for nested directories
+- server component: repo init function to recieve base files (separate function), client can pull files back down 

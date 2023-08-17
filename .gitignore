@@ -5,3 +5,4 @@ file
 .ignore
 *.o
 test/
+server/base

@@ -10,11 +10,15 @@
 #include "client.h"
 
 
-void sendCommitInfo(localRepoInfo *info) {
+void sendCommitInfo(localRepoInfo *info, char *url) 
+{
 	char packfile_name[strlen(PACKFILE_PREFIX)+strlen(info->id)];
 	char inbuf[512];
+	//char url[120];
+	//memset(&url, 0, sizeof(url));
 	memset(&inbuf, 0, sizeof(inbuf));
 	memset(&packfile_name, 0, sizeof(packfile_name));	
+
 	strcat(packfile_name, PACKFILE_PREFIX);
 	strcat(packfile_name, info->id);
 	packfile_name[strlen(packfile_name)] = '\0';
@@ -41,7 +45,7 @@ void sendCommitInfo(localRepoInfo *info) {
 	cli.sin_family = AF_INET;
 	cli.sin_port = htons(8010);
 
-	inet_pton(AF_INET, "127.0.0.1", &cli.sin_addr);
+	inet_pton(AF_INET, url, &cli.sin_addr);
 	connect(sock, (struct sockaddr *)&cli, sizeof(cli));	
 	// first send size data
 	//printf("%s %s %d\n", info->id, info->branch, info->timestamp);
@@ -110,6 +114,17 @@ void packDir(localRepoInfo *info)
 	// change into commit directory
 	char *base_cmd = "tar cvf packfile-";
 	char full_path[strlen(COMMIT_DIR)+strlen(info->branch)+strlen(info->id)+1];
+	memset(&full_path, 0, sizeof(full_path));
+	strcpy(full_path, COMMIT_DIR);
+		//printf("here\n");
+	strcat(full_path, info->branch);
+	strcat(full_path, "/");
+	strcat(full_path, info->id);
+	full_path[strlen(full_path)] = '\0';
+
+	chdir(full_path);
+	//char full_path[strlen(COMMIT_DIR)+strlen(info->branch)+strlen(info->id)+1];
+
 	// archive name: packfile-[commit id]	
 	// final command:  tar cvf packfile-[id] .
 	char full_command[strlen(base_cmd)+strlen(info->id)+2];
@@ -120,15 +135,9 @@ void packDir(localRepoInfo *info)
 	strcat(full_command, " .");
 	full_command[strlen(full_command)] = '\0';
 
-	memset(&full_path, 0, sizeof(full_path));
-	strcat(full_path, COMMIT_DIR);
-	strcat(full_path, info->branch);
-	strcat(full_path, "/");
-	strcat(full_path, info->id);
-	full_path[strlen(full_path)] = '\0';
 
 	//printf("%s %s\n", full_path, full_command);
-	chdir(full_path);
+	
 	system(full_command);
 	// get packfile size and add to struct
 	char packfile_name[strlen(PACKFILE_PREFIX)+strlen(info->id)];
@@ -145,5 +154,22 @@ void packDir(localRepoInfo *info)
 
 	info->size = s;
 	//return s;
+
+}
+
+void setRemote(char *url)
+{
+	// only one remote for now
+	FILE *re = fopen(REMOTE_FILE, "w+");
+      	fprintf(re, "%s", url);
+	fclose(re);	
+
+}
+
+void getRemote(char *url)
+{	
+	FILE *re = fopen(REMOTE_FILE, "r");
+      	fscanf(re, "%s", url);
+	fclose(re);
 
 }

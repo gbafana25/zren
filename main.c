@@ -20,10 +20,22 @@ int main(int argc, char **argv) {
 	} else if(strcmp("client", argv[1]) == 0) {
 		localRepoInfo info = getCurrentCommit();	
 		packDir(&info);
+
+		char url[128];
+		getRemote(url);
+		printf("%s\n", url);
 		//printf("%s %d\n", info.id, info.timestamp);
 		//info.size = pack_size;
 		//printf("%d\n", info.size); 
-		sendCommitInfo(&info);
+		sendCommitInfo(&info, url);
+		exit(0);
+	} else if(strcmp("remote", argv[1]) == 0) {
+		setRemote(argv[2]);
+		/*
+		char url[128];
+		getRemote(url);
+		printf("%s\n", url);
+		*/
 		exit(0);
 	} else if(strcmp("status", argv[1]) == 0) {
 		char *data = openIgnoreFile();
