@@ -42,7 +42,8 @@ void logAction(char *cid, char *msg, char *action, char *logfile) {
 	
 }
 
-void logBase() {
+void logBase() 
+{
 	FILE *l = fopen(MAIN_LOG, "a+");
 	time_t t = 0;
 	t = time(NULL);

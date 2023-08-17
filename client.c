@@ -50,7 +50,11 @@ void sendCommitInfo(localRepoInfo *info, char *url)
 	// first send size data
 	//printf("%s %s %d\n", info->id, info->branch, info->timestamp);
 	//send(sock, info, sizeof(localRepoInfo), 0);
-	sprintf(inbuf, "%s %s %d %s %s %d", info->id, info->branch, info->timestamp, info->action, info->msg, info->size);
+	if(strcmp(info->id, "BASE") == 0) {
+		sprintf(inbuf, "%s %s %d", info->id, info->branch, info->size);
+	} else {	
+		sprintf(inbuf, "%s %s %d %s %s %d", info->id, info->branch, info->timestamp, info->action, info->msg, info->size);
+	}
 	//printf("%s\n", inbuf);
 	inbuf[strlen(inbuf)] = '\0';
 	char recvbuf[128];
@@ -108,12 +112,44 @@ localRepoInfo getCurrentCommit()
 	return info;
 }
 
+void packBase(localRepoInfo *info) 
+{
+	char *base_cmd = "tar cvf packfile-";
+	chdir(BASE_DIR);
+	//system("ls -lah");	
+	
+	char full_command[strlen(base_cmd)+2];
+	memset(&full_command, 0, sizeof(full_command));
+
+	strcat(full_command, base_cmd);
+	strcat(full_command, info->id);
+	strcat(full_command, " .");
+	full_command[strlen(full_command)] = '\0';
+	
+	system(full_command);
+	// get packfile size and add to struct
+	char packfile_name[strlen(PACKFILE_PREFIX)+strlen(info->id)];
+	memset(&packfile_name, 0, sizeof(packfile_name));
+	strcat(packfile_name, PACKFILE_PREFIX);
+	strcat(packfile_name, info->id);
+
+	FILE* pfile = fopen(packfile_name, "r");
+	fseek(pfile, 0L, SEEK_END);
+	size_t s = ftell(pfile);
+	rewind(pfile);
+	fclose(pfile);
+
+	info->size = s;
+
+}
+
 
 void packDir(localRepoInfo *info) 
 {
 	// change into commit directory
 	char *base_cmd = "tar cvf packfile-";
 	char full_path[strlen(COMMIT_DIR)+strlen(info->branch)+strlen(info->id)+1];
+	
 	memset(&full_path, 0, sizeof(full_path));
 	strcpy(full_path, COMMIT_DIR);
 		//printf("here\n");
@@ -168,7 +204,7 @@ void setRemote(char *url)
 
 void getRemote(char *url)
 {	
-	FILE *re = fopen(REMOTE_FILE, "r");
+	FILE *re = fopen(REMOTE_FILE, "r+");
       	fscanf(re, "%s", url);
 	fclose(re);
 

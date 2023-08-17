@@ -32,10 +32,11 @@ Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
 	- [x] 2. - create tarball (system())
 - [x] client sends struct with action information
 - [x] server creates folders for action (new commit, new branch for rollback)
-- client sends tarball of folder
+- [x] client sends tarball of folder
 
 
 ## TODO
 - have files contents match current commit when switching/rolling back 
 - fix `.ignore` not being followed for nested directories
-- server component: repo init function to recieve base files (separate function), client can pull files back down 
+- fix occasional mangling of tarballs in transit
+- server component: client can pull files back down 

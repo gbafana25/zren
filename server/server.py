@@ -5,19 +5,22 @@ import sys
 
 def startServer():
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     soc.bind(('127.0.0.1', 8010))
     soc.listen()
     con, ad = soc.accept()
     data = con.recv(512)
-    str_data = data.decode('utf-8')
-    cm_id = str_data.split(' ')[0] 
-
-    tar_info = getRequestData(str_data)
-    tar_size = tar_info[0]
+    #print(data)
+    str_data = data.decode('utf-8').split(' ')
+    cm_id = str_data[0] 
+    tar_size = 0  
     tar_dir = ''
     if cm_id.lower() == "base":
         tar_dir = 'base/'+cm_id.lower()+'.tar.gz'
+        tar_size = int(str_data[2])
     else:
+        tar_info = getRequestData(str_data)
+        tar_size = tar_info[0]
         tar_dir = tar_info[1]+'.tar.gz'
     #print(tar_size)
 
@@ -35,7 +38,7 @@ def startServer():
 
 
 def getRequestData(data):
-    info_array = data.split(' ')
+    info_array = data
     commit_id = info_array[0]
     branch = info_array[1]
     print(info_array)
@@ -59,7 +62,7 @@ def setupDir():
             print("directories already exist")
 
 def regenerateLog(data):
-    info_array = data.split(' ')
+    info_array = data
     branch = info_array[1]
     with open('logs/'+branch, "a+") as log:
         log.write(info_array[0]+' '+info_array[2]+' '+info_array[3]+' '+info_array[4])

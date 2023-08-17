@@ -406,7 +406,8 @@ char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit, char *br
 	return bo->data;
 }
 
-void createCommit(char **ign, int i_size, char *commit_msg) {
+void createCommit(char **ign, int i_size, char *commit_msg) 
+{
 	char cid[ID_LEN+1];
 	char *branch = getCurrentBranch();
 	char full_cpath[strlen(BRANCH_DIR)+strlen(branch)+ID_LEN+2];

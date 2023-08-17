@@ -9,7 +9,8 @@
 #include "log.h"
 #include "client.h"
 
-int main(int argc, char **argv) { 	
+int main(int argc, char **argv) 
+{ 	
 
 	if(argc == 1) {
 		printHelpMenu();
@@ -18,24 +19,21 @@ int main(int argc, char **argv) {
 		outputLogfile(argv, argc);
 		exit(0);
 	} else if(strcmp("client", argv[1]) == 0) {
-		localRepoInfo info = getCurrentCommit();	
-		packDir(&info);
-
 		char url[128];
 		getRemote(url);
-		printf("%s\n", url);
+		//printf("%s\n", url);
+		localRepoInfo info = getCurrentCommit();	
+		if(strcmp(info.id, "BASE") == 0) {
+			packBase(&info);
+		} else {
+			packDir(&info);
+		}
+	
 		//printf("%s %d\n", info.id, info.timestamp);
-		//info.size = pack_size;
-		//printf("%d\n", info.size); 
 		sendCommitInfo(&info, url);
 		exit(0);
 	} else if(strcmp("remote", argv[1]) == 0) {
-		setRemote(argv[2]);
-		/*
-		char url[128];
-		getRemote(url);
-		printf("%s\n", url);
-		*/
+		setRemote(argv[2]);	
 		exit(0);
 	} else if(strcmp("status", argv[1]) == 0) {
 		char *data = openIgnoreFile();
