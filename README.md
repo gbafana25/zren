@@ -35,6 +35,19 @@ Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
 - [x] client sends tarball of folder
 
 
+## Build
+
+The build system automatically creates production and debug binaries in the respective build directory.
+- Create and enter the build directory
+	```bash
+	mkdir build && cd build		
+	```
+- Generate the Makefile and compile 
+	```bash
+	cmake .. && make	
+	```
+
+
 ## TODO
 - have files contents match current commit when switching/rolling back 
 - fix `.ignore` not being followed for nested directories
