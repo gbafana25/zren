@@ -13,16 +13,7 @@
 #include "track.h"
 #include "log.h"
 #include "ignore.h"
-
-#define REPO_DIR ".rep"
-#define BASE_DIR ".rep/base/"
-#define COMM_DIR ".rep/branches/main/"
-#define BRANCH_DIR ".rep/branches/"
-#define FILE_REG ".rep/FILES"
-#define DIR_FILE ".rep/PROJECT_DIR"
-#define IDENT_FILE ".rep/COMMIT_IDENTS"
-#define TIMESTAMP "TIMESTAMP"
-#define ID_LEN 25
+#include "storage.h"
 
 
 void copyFile(char *filename) {
@@ -191,14 +182,19 @@ void stageFiles(char **opt, char **ign, int i_size, int opt_size) {
 		char dir_str[256];
 		while(fscanf(sub, "%s\n", dir_str) != -1) {
 			//getcwd(full_dir, sizeof(full_dir));		
+			if(inIgnore(dir_str, ign, i_size)) {
+				break;
+			}	
 			strcat(dir_str, "/");
+
 				
 			//printf("%s\n", dir_str);
 			DIR *sdir = opendir(dir_str);
 			struct dirent *subflist = readdir(sdir); 
 			while(subflist != NULL) {
 				bool is_staged = isAlreadyStaged(subflist->d_name);
-				if(!is_staged && strcmp(subflist->d_name, ".") != 0 && strcmp(subflist->d_name, "..") != 0 && subflist->d_type == DT_REG) {
+				bool ignore = inIgnore(dir_str, ign, i_size);
+				if(ignore && !is_staged && strcmp(subflist->d_name, ".") != 0 && strcmp(subflist->d_name, "..") != 0 && subflist->d_type == DT_REG) {
 					strcat(dir_str, subflist->d_name);
 					//printf("%s\n", dir_str);
 					FILE *st = fopen(".rep/STAGE", "a+");
@@ -279,7 +275,7 @@ void readCommitFile(char *filename, baseobject *bo) {
 		size_t s = ftell(rtest);
 		rewind(rtest);
 
-		if(s != strlen(bo->data)) {
+		if(strlen(bo->data) == NULL || s != strlen(bo->data)) {
 			bo->data = (char*)realloc(bo->data, sizeof(char)*(strlen(bo->data)+s+1));
 		}
 		bo->pos = 0;
@@ -365,7 +361,7 @@ int getBaseFile(char *filename, baseobject *base) {
 	return 0;
 }
 
-char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit, char *branch) {	
+char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit, char *branch, bool is_revert) {	
 	char dirpath[strlen(BRANCH_DIR)+strlen(branch)+1];	
 	memset(&dirpath, 0, sizeof(dirpath));
 	strcat(dirpath, BRANCH_DIR);
@@ -384,14 +380,23 @@ char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit, char *br
 			// apply commit to baseobject
 			
 			// build path
-			size_t s = strlen(BRANCH_DIR)+strlen(commits->d_name)+strlen(base_name)+strlen(newext)+3; 
+			size_t s;
+			if(is_revert) {
+				s = strlen(BRANCH_DIR)+strlen(branch)+strlen(commits->d_name)+strlen(base_name)+strlen(newext)+4; 
+			} else {
+				s = strlen(BRANCH_DIR)+strlen(commits->d_name)+strlen(base_name)+strlen(newext)+3; 
+			}
 			char full_path[s];
 			strncat(full_path, BRANCH_DIR, strlen(BRANCH_DIR));
+			if(is_revert) {
+				strcat(full_path, branch);
+				strcat(full_path, "/");
+			}
 			strncat(full_path, commits->d_name, strlen(commits->d_name));
 			strcat(full_path, "/");
 			strcat(full_path, base_name);
 			strcat(full_path, newext);
-			//printf("%s\n", full_path);
+			printf("%s\n", full_path);
 
 			readCommitFile(full_path, bo);		
 			//full_path[strlen(full_path)-1] = '\0';
@@ -545,7 +550,7 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 			commitfile[0] = '\0';		
 		} else {
 			//createFileRegistry(scandir);
-			char *latest = getMostRecent(&b, name, cid, branch);
+			char *latest = getMostRecent(&b, name, cid, branch, false);
 			//printf("%s\n", latest);
 			int r = getBaseFile(name, &mod);
 			findDiff(latest, mod.data, &head);
@@ -683,7 +688,93 @@ void initRepository(char *dirname, char **ign, int i_size)
 	}
 }
 
-void rollbackToCommit(char *cid, char **ign, int i_size) {
+
+void revertFileContents(char **ign, int size, char *cid) 
+{
+	char *current_branch = getCurrentBranch();
+	char log_path[strlen(LOG_DIR)+strlen(current_branch)];
+	char branch_path[strlen(BRANCH_DIR)+strlen(current_branch)+2];
+
+	memset(&log_path, 0, sizeof(log_path));
+	memset(&branch_path, 0, sizeof(branch_path));
+	
+	strcpy(log_path, LOG_DIR);
+	strcat(log_path, current_branch);
+
+	FILE *log = fopen(log_path, "r");
+		
+	strcpy(branch_path, BRANCH_DIR);
+	strcat(branch_path, current_branch);
+	strcat(branch_path, "/");
+
+	char msg[256];
+	int t;
+	char action[45];
+	char id[25];
+
+
+	char *change_ext = ".chg";
+
+	while(fscanf(log, "%s %d %s %s\n", id, &t, action, msg) != -1) {
+		// (ignore base?), apply all changefiles inclusive of specified commit
+		
+		if(strncmp(id, cid, strlen(cid)) != 0 && strcmp(id, "base") != 0) {
+			DIR *home = opendir("."); // project root
+			struct dirent *hd = readdir(home);
+
+			char commit_dir[strlen(branch_path)+strlen(id)+2];
+			memset(&commit_dir, 0, sizeof(commit_dir));
+			strcpy(commit_dir, branch_path);
+			strcat(commit_dir, id);
+			strcat(commit_dir, "/");
+			
+			while(hd != NULL) 
+			{
+				// fix: expected !inIgnored, opposite worked
+				if(inIgnore(hd->d_name, ign, size))
+				{
+					char full_chg[strlen(commit_dir)+strlen(hd->d_name)+strlen(change_ext)+1]; 
+					
+					memset(&full_chg, 0, sizeof(full_chg));
+					strcpy(full_chg, commit_dir);
+					strcat(full_chg, hd->d_name);
+					strcat(full_chg, change_ext);
+
+					printf("%s\n",  full_chg);
+					printf("%s\n", current_branch);
+					printf("%s\n", id);
+					printf("%s\n", hd->d_name);
+
+					baseobject b;
+					memset(&b, 0, sizeof(b));
+					char *latest = getMostRecent(&b, hd->d_name, id, current_branch, true);
+					printf("%s\n", latest);
+				
+					// get current file instead?	
+					//int r = getBaseFile(name, &mod);
+					//findDiff(latest, mod.data, &head);
+
+
+					//printf("Applying %s\n", name);
+					//writeCommitFile(&head, commitfile, r);
+
+				}
+		
+				hd = readdir(home);
+			}
+
+			closedir(home);
+
+		}
+		// if current id was just applied, exit here
+	}
+	fclose(log);	
+
+	
+}
+
+void rollbackToCommit(char *cid, char **ign, int i_size) 
+{
 	FILE *log = fopen(MAIN_LOG, "r");
 	char current_dir[256];
 	getcwd(current_dir, sizeof(current_dir));
@@ -803,11 +894,15 @@ void rollbackToCommit(char *cid, char **ign, int i_size) {
 	
 	
 	fclose(log);
+
+	//revertFileContents(ign, i_size, cid);
 	
 	//logAction(commits->d_name, msg, act);
 }
 
-void checkoutBranch(char *branch) {
+
+void checkoutBranch(char *branch) 
+{
 	// check if branch exists
 	DIR *b = opendir(".rep/branches/");
 	struct dirent *brs = readdir(b);
