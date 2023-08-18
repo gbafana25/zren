@@ -595,7 +595,8 @@ void getSubdir(char *dir) {
 }
 
 
-void initRepository(char *dirname, char **ign, int i_size) {
+void initRepository(char *dirname, char **ign, int i_size) 
+{
 	DIR *dirobj = opendir(dirname);	
 	struct dirent *file_list = readdir(dirobj);
 	int d = mkdir(REPO_DIR, S_IRWXU);

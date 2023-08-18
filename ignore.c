@@ -4,8 +4,12 @@
 
 #include "ignore.h"
 
-char *openIgnoreFile() {
-	FILE *ig = fopen(IGNORE_FILE, "r");
+char *openIgnoreFile() 
+{
+	FILE *ig = fopen(IGNORE_FILE, "r+");
+	if(ig == NULL) {
+		return "";
+	}
 	fseek(ig, 0L, SEEK_END);
 	size_t s = ftell(ig);
 	rewind(ig);
@@ -19,7 +23,8 @@ char *openIgnoreFile() {
 // return values work when flipped for some reason
 // in createCommit (storage.c), the negation of this functions return is used
 // in stageFiles (storage.c), regular return value is used
-bool inIgnore(char *filename, char **ign, int i_size) {
+bool inIgnore(char *filename, char **ign, int i_size) 
+{
 	for(int i = 0; i < i_size; i++) {
 		if(strncmp(filename, ".", 1) == 0 || strncmp(filename, "..", 2) == 0) {
 			//in_ignore = true;
@@ -46,6 +51,10 @@ char **parseIgnoreFile(char *data, int *s) {
 	int count = 0;
 	int im_ind = 0;
 	char **ign;
+	if(strcmp(data, "") == 0) {
+		return '\0';
+		
+	}
 	// first get line count to allocate array
 	int linecount = 0;
 	for(int i = 0; i < strlen(data); i++) {

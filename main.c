@@ -55,6 +55,13 @@ int main(int argc, char **argv)
 			char *data = openIgnoreFile();
 			int s = 0;
 			char **ign = parseIgnoreFile(data, &s);
+			/*
+			if(strcmp(data, "") != 0) {
+			} else {
+				char **ign = '\0';
+			}
+			*/
+				
 			initRepository(argv[2], ign, s);
 			exit(0);
 		// commit a change 
