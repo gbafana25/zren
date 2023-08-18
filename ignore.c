@@ -47,7 +47,8 @@ bool inIgnore(char *filename, char **ign, int i_size)
 	return true;
 }
 
-char **parseIgnoreFile(char *data, int *s) {
+char **parseIgnoreFile(char *data, int *s) 
+{
 	int count = 0;
 	int im_ind = 0;
 	char **ign;

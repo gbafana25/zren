@@ -36,7 +36,6 @@ Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
 
 
 ## TODO
-- have files contents match current commit when switching/rolling back 
-- fix `.ignore` not being followed for nested directories
-- fix occasional mangling of tarballs in transit
-- server component: client can pull files back down 
+- [ ] have files contents match current commit when switching/rolling back 
+- [ ] fix occasional mangling of tarballs in transit
+- [ ] server component: client can pull files back down 
