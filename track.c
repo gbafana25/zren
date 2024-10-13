@@ -71,3 +71,23 @@ void printBaseObject(baseobject *bo) {
 	printf("----------------------\n");
 }
 
+char* createFilename(char* name, char *ext, char *base) {
+	int base_len = strlen(base);
+	int namelen = strlen(name);
+	int extlen = strlen(ext);
+	printf("Base: %d, Name: %d, Extension: %d\n", base_len, namelen, extlen);
+
+	//char *full_path = (char*)malloc((base_len+namelen+extlen+1)*sizeof(char));
+	char *full_path = (char*)malloc(sizeof(char)*(strlen(base)+strlen(name)+strlen(ext)+1));
+	//printf("here\n");
+	//char full_path[base_len+namelen+extlen+1];
+	memset(full_path, 0, sizeof(full_path));
+
+	strcat(full_path, base);//, base_len+1);
+	strcat(full_path, name);//, namelen+1);
+	strcat(full_path, ext);//, extlen+1);
+
+	return full_path;
+
+}
+

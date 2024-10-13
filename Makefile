@@ -1,10 +1,10 @@
 OBJECTS = main.o ignore.o log.o menu.o storage.o track.o client.o
 CC = gcc
 
-all: main 
+all: zren
 
-main: $(OBJECTS)
-	$(CC) -o main $(OBJECTS)
+zren: $(OBJECTS)
+	$(CC) -o zren $(OBJECTS)
 
 
 main.o: main.c
@@ -30,13 +30,13 @@ track.o: track.c track.h
 	$(CC) -c track.c	
 
 clean:
-	rm main 
+	rm zren
 	rm -rf .rep/
 	rm *.o
 
 run: all
-	./main
+	./zren
 				
 init: all
-	./main init .
+	./zren init .
 						

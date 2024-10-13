@@ -18,12 +18,17 @@
 
 void copyFile(char *filename) {
 	// create new filename
+
 	char *ext = ".bas";
+	/*
 	char *base_copy = (char*)malloc(sizeof(char)*(strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1));
 
 	strcpy(base_copy, BASE_DIR);
 	strcat(base_copy, filename);
 	strcat(base_copy, ext);
+	*/
+	printf("In copyFile: filename: %d, extension: %d, base: %d\n", strlen(filename), strlen(ext), strlen(BASE_DIR));
+	char *base_copy = createFilename(filename, ext, BASE_DIR);
 
 	// load original file
 	FILE *f = fopen(filename, "r");
@@ -46,6 +51,8 @@ void copyFile(char *filename) {
 	FILE *b = fopen(base_copy, "w+");
 	fwrite(src, sizeof(char), s, b);
 	fclose(b);
+
+	free(base_copy);
 
 	
 }
@@ -274,8 +281,8 @@ void readCommitFile(char *filename, baseobject *bo) {
 		fseek(rtest, 0L, SEEK_END);
 		size_t s = ftell(rtest);
 		rewind(rtest);
-
-		if(strlen(bo->data) == NULL || s != strlen(bo->data)) {
+		int bo_size = strlen(bo->data);
+		if(&bo_size == NULL || s != bo_size) {
 			bo->data = (char*)realloc(bo->data, sizeof(char)*(strlen(bo->data)+s+1));
 		}
 		bo->pos = 0;
@@ -387,7 +394,8 @@ char *getMostRecent(baseobject *bo, char *base_name, char *curr_commit, char *br
 				s = strlen(BRANCH_DIR)+strlen(commits->d_name)+strlen(base_name)+strlen(newext)+3; 
 			}
 			char full_path[s];
-			strncat(full_path, BRANCH_DIR, strlen(BRANCH_DIR));
+			//strncat(full_path, BRANCH_DIR, strlen(BRANCH_DIR));
+			strcat(full_path, BRANCH_DIR);
 			if(is_revert) {
 				strcat(full_path, branch);
 				strcat(full_path, "/");
@@ -740,8 +748,9 @@ void revertFileContents(char **ign, int size, char *cid)
 					strcat(full_chg, hd->d_name);
 					strcat(full_chg, change_ext);
 
+					//printf("here\n");
 					printf("%s\n",  full_chg);
-					printf("%s\n", current_branch);
+					//printf("%s\n", current_branch);
 					printf("%s\n", id);
 					printf("%s\n", hd->d_name);
 
@@ -895,7 +904,7 @@ void rollbackToCommit(char *cid, char **ign, int i_size)
 	
 	fclose(log);
 
-	//revertFileContents(ign, i_size, cid);
+	revertFileContents(ign, i_size, cid);
 	
 	//logAction(commits->d_name, msg, act);
 }

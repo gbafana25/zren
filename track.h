@@ -29,5 +29,6 @@ void insertStrObject(strobject *so, strobject *n);
 void printStrObject(strobject *so);
 void printBaseObject(baseobject *bo);
 void findDiff(char *base, char *current, strobject *head);
+char *createFilename(char* name, char *ext, char *base);
 
 #endif
