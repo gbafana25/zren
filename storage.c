@@ -515,23 +515,24 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 		strobject head;
 		memset(&head, 0, sizeof(head));
 		initStrObject(&head, 'H', NULL, CHANGE); 
-		char full[strlen(BASE_DIR)+strlen(name)+strlen(base_ext)+1];
-		memset(&full, 0, sizeof(full));
-		strcat(full, BASE_DIR);
-		strcat(full, name);
-		strcat(full, base_ext);
-			
+
+		char *full = createFilename(name, base_ext, BASE_DIR);
 		// 1. Get base (or most recent)
 		baseobject b;	
 		memset(&b, 0, sizeof(b));
 		//printf("%s\n", full);
 		
-		getBaseFile(full, &b);	
-													// 2. get modified
+		//printf("delete failure here\n");
+		int basefile_exists = getBaseFile(full, &b);
+		if(basefile_exists == -1) {
+			continue;
+		}
+		// 2. get modified
 	
 		baseobject mod;
 		memset(&mod, 0, sizeof(mod));
 
+		
 		char commitfile[strlen(full_cpath)+strlen(name)+strlen(ext)+4];
 		memset(&commitfile, 0, sizeof(commitfile));
 		//commitfile = (char*)realloc(commitfile, sizeof(char)*(strlen(full_cpath)+strlen(name)+strlen(ext)+4));
@@ -540,6 +541,11 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 		strcat(commitfile, "/");
 		strcat(commitfile, name);
 		strcat(commitfile, ext);
+		
+
+
+		// add is_commit_file flag
+		//char *commitfile = createFilename(name, ext, full_cpath+4);
 		//printf("%s\n", commitfile);
 		//printf("here %s\n", commitfile);
 		if(is_base) {
@@ -570,7 +576,8 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 		}
 		commitfile[0] = '\0';
 		memset(&name, 0, sizeof(name));
-		full[0] = '\0';
+		//full[0] = '\0';
+		free(full);
 			
 	}	
 
@@ -630,6 +637,10 @@ void initRepository(char *dirname, char **ign, int i_size)
 		createFileRegistry(dirname);
 		setProjectDir(dirname);
 		logBase();
+
+		// create empty stage file
+		FILE *stage = fopen(".rep/STAGE", "w+");
+		fclose(stage);
 	}
 	while(file_list != NULL) {	
 		// only track files in dir base for now

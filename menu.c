@@ -21,7 +21,7 @@ void printHelpMenu() {
 	printf("rollback [commit_id] - set head to given commit\n");
 	printf("checkout [commit_id] - switch to specified branch\n");
 	printf("log [msg|id|time] - show repository log, with optional flags to filter options\n");
-	printf("remote [url] - set url for remote repository");
+	printf("remote [url] - set url for remote repository\n");
 	printf("stage [filename] or --all - move file(s) to staging area to be committed\n\n");
 	
 
