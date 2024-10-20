@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "track.h"
 
@@ -71,19 +72,54 @@ void printBaseObject(baseobject *bo) {
 	printf("----------------------\n");
 }
 
-char* createFilename(char* name, char *ext, char *base) {
+char *createBranchName(char *base, char *path, bool add_trailing_slash, bool add_middle_slash) {
+	int base_len = strlen(base);
+	int path_len = strlen(path);
+	int total_len = base_len + path_len + 1;
+
+	if(add_trailing_slash) {
+		total_len += 1;
+	}
+
+	if(add_middle_slash) {
+		total_len += 1;
+	}
+
+	char *full_path = (char*)malloc(sizeof(char)*total_len);
+	memset(full_path, 0, sizeof(full_path));
+
+	strcpy(full_path, base);
+	if(add_middle_slash) {
+		strcat(full_path, "/");
+	}
+	strcat(full_path, path);
+	if(add_trailing_slash) {
+		strcat(full_path, "/");
+	}
+	
+
+	return full_path;
+}
+
+char* createFilename(char* name, char *ext, char *base, bool is_commit_file) {
 	int base_len = strlen(base);
 	int namelen = strlen(name);
 	int extlen = strlen(ext);
-	printf("Base: %d, Name: %d, Extension: %d\n", base_len, namelen, extlen);
+	int total_len = base_len + namelen + extlen + 1;
 
-	//char *full_path = (char*)malloc((base_len+namelen+extlen+1)*sizeof(char));
-	char *full_path = (char*)malloc(sizeof(char)*(strlen(base)+strlen(name)+strlen(ext)+1));
-	//printf("here\n");
+	if(is_commit_file) {
+		total_len += 1;
+	}
+	//printf("Base: %d, Name: %d, Extension: %d\n", base_len, namelen, extlen);
+	//char *full_path = (char*)malloc(sizeof(char)*(strlen(base)+strlen(name)+strlen(ext)+1));
+	char *full_path = (char*)malloc(sizeof(char)*total_len);
 	//char full_path[base_len+namelen+extlen+1];
 	memset(full_path, 0, sizeof(full_path));
 
 	strcat(full_path, base);//, base_len+1);
+	if(is_commit_file) {
+		strcat(full_path, "/");
+	}
 	strcat(full_path, name);//, namelen+1);
 	strcat(full_path, ext);//, extlen+1);
 

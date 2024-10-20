@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "log.h"
+#include "track.h"
 
 void slugMessage(char *msg) {
 	for(int i = 0; i < strlen(msg); i++) {
@@ -81,10 +82,7 @@ bool showTime(char **opt, int count) {
 // log command will include options to filter data
 void outputLogfile(char **opt, int count) {
 	char *branch = getCurrentBranch();
-	char logpath[strlen(LOG_DIR)+strlen(branch)+1];
-	memset(&logpath, 0, sizeof(logpath));
-	strcat(logpath, LOG_DIR);	
-	strcat(logpath, branch);
+	char *logpath = createBranchName(LOG_DIR, branch, false, false);
 	FILE *l = fopen(logpath, "r");
 	char id[26];
 	char action[45];

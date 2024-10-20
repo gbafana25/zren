@@ -20,15 +20,8 @@ void copyFile(char *filename) {
 	// create new filename
 
 	char *ext = ".bas";
-	/*
-	char *base_copy = (char*)malloc(sizeof(char)*(strlen(BASE_DIR)+strlen(filename)+strlen(ext)+1));
-
-	strcpy(base_copy, BASE_DIR);
-	strcat(base_copy, filename);
-	strcat(base_copy, ext);
-	*/
 	printf("In copyFile: filename: %d, extension: %d, base: %d\n", strlen(filename), strlen(ext), strlen(BASE_DIR));
-	char *base_copy = createFilename(filename, ext, BASE_DIR);
+	char *base_copy = createFilename(filename, ext, BASE_DIR, false);
 
 	// load original file
 	FILE *f = fopen(filename, "r");
@@ -71,12 +64,7 @@ void genCommitId(char *id) {
 void addCommitMessage(char *msg, char *commit_id) {
 	//printf("%s\n", msg);
 	char *fname = "MSG";
-	char path[strlen(COMM_DIR)+strlen(commit_id)+strlen(fname)+2];
-	memset(&path, 0, sizeof(path));
-	strcat(path, COMM_DIR);
-	strcat(path, commit_id);
-	strcat(path, "/");
-	strcat(path, fname);
+	char *path = createFilename(commit_id, fname, COMM_DIR, true);
 	path[strlen(path)] = '\0';
 	
 	//printf("%s\n", path);
@@ -88,7 +76,6 @@ void addCommitMessage(char *msg, char *commit_id) {
 
 int *getTimeStamp(char *cid) {
 	char *full = (char*)malloc(sizeof(char)*ID_LEN+(strlen(COMM_DIR)+strlen(TIMESTAMP)+2));
-	//memset(&full, 0, sizeof(full));
 	full[0] = '\0';
 	
 	strcat(full, COMM_DIR);
@@ -96,7 +83,7 @@ int *getTimeStamp(char *cid) {
 	strcat(full, "/");
 	strcat(full, TIMESTAMP);
 	full[strlen(full)] = '\0';
-
+	
 	//printf("%s\n", full);
 	FILE *tfile = fopen(full, "r");
 
@@ -476,10 +463,7 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 		logAction(cid, commit_msg, "commit", MAIN_LOG);
 	
 	} else {
-		char logpath[strlen(LOG_DIR)+strlen(branch)+1];
-		memset(&logpath, 0, sizeof(logpath));
-		strcat(logpath, LOG_DIR);
-		strcat(logpath, branch);
+		char *logpath = createBranchName(LOG_DIR, branch, false, true);
 		logAction(cid, commit_msg, "commit", logpath);
 	}
 	char *scandir = getProjectDir();	
@@ -488,12 +472,7 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 	FILE *sb = fopen(".rep/SUBDIRS", "r");
 	char subname[512];
 	while(fscanf(sb, "%s\n", subname) != -1) {
-
-		char csub[strlen(full_cpath)+strlen(subname)+2];
-		memset(&csub, 0, sizeof(csub));
-		strcat(csub, full_cpath);
-		strcat(csub, "/");
-		strcat(csub, subname);
+		char *csub = createBranchName(full_cpath, subname, false, true);
 		//printf("%s\n", csub);
 		mkdir(csub, S_IRWXU); 
 
@@ -516,7 +495,7 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 		memset(&head, 0, sizeof(head));
 		initStrObject(&head, 'H', NULL, CHANGE); 
 
-		char *full = createFilename(name, base_ext, BASE_DIR);
+		char *full = createFilename(name, base_ext, BASE_DIR, false);
 		// 1. Get base (or most recent)
 		baseobject b;	
 		memset(&b, 0, sizeof(b));
@@ -532,27 +511,9 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 		baseobject mod;
 		memset(&mod, 0, sizeof(mod));
 
-		
-		char commitfile[strlen(full_cpath)+strlen(name)+strlen(ext)+4];
-		memset(&commitfile, 0, sizeof(commitfile));
-		//commitfile = (char*)realloc(commitfile, sizeof(char)*(strlen(full_cpath)+strlen(name)+strlen(ext)+4));
-
-		strcat(commitfile, full_cpath);
-		strcat(commitfile, "/");
-		strcat(commitfile, name);
-		strcat(commitfile, ext);
-		
-
-
-		// add is_commit_file flag
-		//char *commitfile = createFilename(name, ext, full_cpath+4);
+		char *commitfile = createFilename(name, ext, full_cpath, true);
 		//printf("%s\n", commitfile);
-		//printf("here %s\n", commitfile);
 		if(is_base) {
-			
-			//full[strlen(full)-1] = '\0';
-
-			
 			int r = getBaseFile(name, &mod);
 
 			
@@ -691,12 +652,8 @@ void initRepository(char *dirname, char **ign, int i_size)
 				// copy over file (w/ different extension
 				bool copy = inIgnore(file_list->d_name, ign, i_size);	
 				if(copy) {
-					char bse[strlen(dir_name)+strlen(file_list->d_name)+2]; 
-					strcpy(bse, dir_name);
-					strcat(bse, "/");
-					strcat(bse, file_list->d_name);
-					bse[strlen(bse)] = '\0';
-					//printf("%s\n", bse);
+					char *bse = createBranchName(dir_name, file_list->d_name, false, true);
+					//bse[strlen(bse)] = '\0';
 					copyFile(bse);
 				}
 			}
@@ -721,7 +678,7 @@ void revertFileContents(char **ign, int size, char *cid)
 	strcat(log_path, current_branch);
 
 	FILE *log = fopen(log_path, "r");
-		
+
 	strcpy(branch_path, BRANCH_DIR);
 	strcat(branch_path, current_branch);
 	strcat(branch_path, "/");
