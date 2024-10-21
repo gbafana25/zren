@@ -38,8 +38,6 @@ Article link: https://dev.to/gbafana25/building-a-version-control-system-2e11
 ## TODO
 - create more helper functions
 - have files contents match current commit when switching/rolling back 
-- [ ] fix occasional mangling of tarballs in transit
--  server component: client can pull files back down 
-- [ ] create stage file on repo creation, automatically have newly created files be unstaged, recognize deleted files
-	- also check if file exists when staging, perform `add` function when staging file for first time
-	- allow unstaging
+- fix occasional mangling of tarballs in transit
+- server component: client can pull files back down 
+- automatically have newly created files be unstaged, recognize deleted files

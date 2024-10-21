@@ -22,7 +22,7 @@ void copyFile(char *filename) {
 	char *ext = ".bas";
 	printf("In copyFile: filename: %d, extension: %d, base: %d\n", strlen(filename), strlen(ext), strlen(BASE_DIR));
 	char *base_copy = createFilename(filename, ext, BASE_DIR, false);
-
+	printf("%s\n", base_copy);
 	// load original file
 	FILE *f = fopen(filename, "r");
 	if(f == NULL) {
@@ -129,6 +129,37 @@ bool isAlreadyStaged(char *opt) {
 		}
 	}
 	return false;
+}
+
+void unstageFile(char *filename) {
+	// read stage into temp file
+	char file[256];
+	FILE *stage = fopen(".rep/STAGE", "r");
+	FILE *tempstage = fopen(".rep/TSTAGE", "w+");
+	while(fscanf(stage, "%s", file) != -1) {
+		// filter out file that needs to be removed from staging area
+		if(strcmp(file, filename) != 0) {
+			//printf("%s\n", file);
+			fprintf(tempstage, "%s\n", file);
+		}
+		
+		memset(&file, 0, sizeof(file));
+	}
+
+	fclose(stage);
+	fclose(tempstage);
+
+	// copy tempstage into regular stage and delete temp file
+	FILE *newstage = fopen(".rep/TSTAGE", "r");
+	FILE *currstage = fopen(".rep/STAGE", "w");
+	while(fscanf(newstage, "%s", file) != -1) {
+		fprintf(currstage, "%s\n", file);
+		memset(&file, 0, sizeof(file));
+	}
+
+	fclose(newstage);
+	fclose(currstage);
+	remove(".rep/TSTAGE");
 }
 
 // add files to staging area
@@ -478,9 +509,7 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 
 
 	}
-		
-	//DIR *dirobj = opendir(BASE_DIR);	
-	//struct dirent *file_list = readdir(dirobj);
+	
 	FILE *stage = fopen(".rep/STAGE", "r");
 	// max length for filenames
 	char name[256];
@@ -504,6 +533,7 @@ void createCommit(char **ign, int i_size, char *commit_msg)
 		//printf("delete failure here\n");
 		int basefile_exists = getBaseFile(full, &b);
 		if(basefile_exists == -1) {
+			//addFile(full);
 			continue;
 		}
 		// 2. get modified

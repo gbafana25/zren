@@ -90,6 +90,8 @@ int main(int argc, char **argv)
 			char **ign = parseIgnoreFile(data, &s);
 			stageFiles(argv, ign, s, argc);	
 			exit(0); 
+		} else if(strcmp("unstage", argv[1]) == 0 && argc >= 3) {
+			unstageFile(argv[2]);
 		}
 	} else {
 		printHelpMenu();

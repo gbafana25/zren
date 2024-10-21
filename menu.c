@@ -10,6 +10,7 @@
 #include "menu.h"
 #include "storage.h"
 #include "log.h"
+#include "track.h"
 
 void printHelpMenu() {
 	printf("zren help menu\n\n");
@@ -34,10 +35,8 @@ void printStage(char **ign, int i_size) {
 		return;
 	}
 	char *branch = getCurrentBranch();
-	char logpath[strlen(LOG_DIR)+strlen(branch)+1];
-	memset(&logpath, 0, sizeof(logpath));
-	strcat(logpath, LOG_DIR);	
-	strcat(logpath, branch);
+	char *logpath = createBranchName(LOG_DIR, branch, false, false);
+
 	char name[256];
 	printf("Currently staged files:\n\n");
 	while(fscanf(stage, "%s\n", name) != -1) {
