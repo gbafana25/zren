@@ -36,6 +36,7 @@ bool isAlreadyStaged(char *opt);
 void getSubdir(char *dir);
 void checkoutBranch(char *branch);
 void revertFileContents(char **ign, int size, char *cid);
-void unstageFile(char *filename);
+void deleteFromIndex(char *filename, char *index_file);
+void removeFile(char *filename);
 
 #endif

@@ -131,10 +131,20 @@ bool isAlreadyStaged(char *opt) {
 	return false;
 }
 
-void unstageFile(char *filename) {
+void removeFile(char *filename) {
+	// build path to base
+	char *full = createFilename(filename, ".bas", BASE_DIR, false);
+	printf("Deleting basefile: %s\n", full);
+	remove(full);
+	printf("Removing from index...");
+	deleteFromIndex(filename, ".rep/FILES");
+
+}
+
+void deleteFromIndex(char *filename, char *index_file) {
 	// read stage into temp file
 	char file[256];
-	FILE *stage = fopen(".rep/STAGE", "r");
+	FILE *stage = fopen(index_file, "r");
 	FILE *tempstage = fopen(".rep/TSTAGE", "w+");
 	while(fscanf(stage, "%s", file) != -1) {
 		// filter out file that needs to be removed from staging area
@@ -151,7 +161,7 @@ void unstageFile(char *filename) {
 
 	// copy tempstage into regular stage and delete temp file
 	FILE *newstage = fopen(".rep/TSTAGE", "r");
-	FILE *currstage = fopen(".rep/STAGE", "w");
+	FILE *currstage = fopen(index_file, "w");
 	while(fscanf(newstage, "%s", file) != -1) {
 		fprintf(currstage, "%s\n", file);
 		memset(&file, 0, sizeof(file));

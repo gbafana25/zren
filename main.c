@@ -91,7 +91,9 @@ int main(int argc, char **argv)
 			stageFiles(argv, ign, s, argc);	
 			exit(0); 
 		} else if(strcmp("unstage", argv[1]) == 0 && argc >= 3) {
-			unstageFile(argv[2]);
+			deleteFromIndex(argv[2], ".rep/STAGE");
+		} else if(strcmp("remove", argv[1]) == 0 && argc >= 3) {
+			removeFile(argv[2]);
 		}
 	} else {
 		printHelpMenu();
